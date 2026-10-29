@@ -287,4 +287,27 @@ void main() {
     expect(controller.hasFittedInitially, isTrue);
     expect(controller.layoutedGraph.nodes['n1']!.position, isNot(Offset.zero));
   });
+
+  test('config copyWith reaches every field', () {
+    const config = GraphViewerConfig();
+    expect(config.animateLayout, isTrue);
+    expect(config.enterDuration, Duration.zero);
+    final changed = config.copyWith(animateLayout: false, enterDuration: const Duration(seconds: 1));
+    expect(changed.animateLayout, isFalse);
+    expect(changed.enterDuration, const Duration(seconds: 1));
+    expect(changed, isNot(config));
+  });
+
+  testWidgets('animateLayout: false places nodes at once', (tester) async {
+    final controller = await pumpViewer(tester, config: const GraphViewerConfig(animateLayout: false));
+    final before = tester.getCenter(find.byKey(const ValueKey('node-B')));
+
+    controller.layoutConfig = const LayoutConfig.hierarchical(direction: LayoutDirection.vertical);
+    await tester.pump();
+    await tester.pump();
+
+    final after = tester.getCenter(find.byKey(const ValueKey('node-B')));
+    expect(after, isNot(before));
+    expect(after, offsetMoreOrLessEquals(centerOf(controller, 'B'), epsilon: 0.5));
+  });
 }

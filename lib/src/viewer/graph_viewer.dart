@@ -166,7 +166,7 @@ class _GraphViewerState extends State<GraphViewer> with TickerProviderStateMixin
                 onScaleUpdate: _onScaleUpdate,
                 child: AnimatedOpacity(
                   opacity: _contentOpacity(),
-                  duration: widget.config.enterDuration ?? Duration.zero,
+                  duration: widget.config.enterDuration,
                   child: ValueListenableBuilder<GraphTransform>(
                     valueListenable: _controller.transformListenable,
                     builder: _transformed,
@@ -376,7 +376,9 @@ class _GraphViewerState extends State<GraphViewer> with TickerProviderStateMixin
 
   SpringDescription? _layoutSpring(Graph graph) {
     final skipInitial = !_initialSnapDone && !widget.config.animateInitialPlacement;
-    if (skipInitial || _reduceMotion || _controller.isManualLayout(graph)) return null;
+    if (!widget.config.animateLayout || skipInitial || _reduceMotion || _controller.isManualLayout(graph)) {
+      return null;
+    }
     return widget.config.layoutSpring;
   }
 
