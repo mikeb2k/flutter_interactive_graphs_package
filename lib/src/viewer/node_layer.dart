@@ -489,7 +489,8 @@ class RenderNodeLayer extends RenderBox
       child.layout(fixed == null ? const BoxConstraints() : BoxConstraints.tight(fixed), parentUsesSize: true);
       final id = data.nodeId;
       if (id != null) {
-        if (fixed == null) measured[id] = child.size;
+        // A plain copy: debug sizes reference their render object and can't cross isolates
+        if (fixed == null) measured[id] = Size.copy(child.size);
         data.offset = _centerOf(id) - child.size.center(Offset.zero);
       }
       child = data.nextSibling;

@@ -260,4 +260,31 @@ void main() {
     expect(controller.layoutedGraph.nodes, isEmpty);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('a large measured graph is laid out on the background isolate', (tester) async {
+    final graph = Graph.build((g) {
+      g.nodes([for (var i = 0; i < 400; i++) 'n$i']);
+      for (var i = 1; i < 400; i++) {
+        g.edge('n${i ~/ 2}', 'n$i');
+      }
+    });
+    final controller = GraphViewerController(graph: graph, backgroundLayoutThreshold: 400);
+    addTearDown(controller.dispose);
+    await tester.pumpWidget(
+      host(
+        GraphViewer(
+          controller: controller,
+          nodeBuilder: (context, details) => const SizedBox(width: 30, height: 20),
+        ),
+      ),
+    );
+    for (var i = 0; i < 100 && !controller.hasFittedInitially; i++) {
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
+      await tester.pump();
+    }
+
+    expect(tester.takeException(), isNull);
+    expect(controller.hasFittedInitially, isTrue);
+    expect(controller.layoutedGraph.nodes['n1']!.position, isNot(Offset.zero));
+  });
 }

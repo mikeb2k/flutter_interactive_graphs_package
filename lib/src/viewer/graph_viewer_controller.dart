@@ -349,6 +349,17 @@ class GraphViewerController extends ChangeNotifier {
         _layoutRunning = true;
         try {
           laid = await compute(_BackgroundLayout.run, (sized, config));
+        } on Object catch (error, stack) {
+          // Never leave the graph unlaid: report and lay out on this isolate instead
+          FlutterError.reportError(
+            FlutterErrorDetails(
+              exception: error,
+              stack: stack,
+              library: 'interactive_graphs',
+              context: ErrorDescription('while laying out the graph on a background isolate'),
+            ),
+          );
+          laid = GraphLayout.run(sized, config);
         } finally {
           _layoutRunning = false;
         }
