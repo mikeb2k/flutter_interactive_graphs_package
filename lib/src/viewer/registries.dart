@@ -64,13 +64,10 @@ class AnchorRegistry extends ChangeNotifier {
 /// The paths edges were last drawn along, for tap and hover hit testing.
 @internal
 class EdgeHitRegistry {
-  final Map<String, EdgePath> _paths = {};
+  final Map<String, (EdgePath, Rect)> _paths = {};
 
   /// Records the path of edge [id].
-  void report(String id, EdgePath path) => _paths[id] = path;
-
-  /// Forgets edge [id].
-  void clear(String id) => _paths.remove(id);
+  void report(String id, EdgePath path) => _paths[id] = (path, path.bounds(strokeWidth: 0, showArrow: false));
 
   /// Forgets every edge not in [ids].
   void retain(Set<String> ids) => _paths.removeWhere((id, _) => !ids.contains(id));
@@ -79,7 +76,9 @@ class EdgeHitRegistry {
   String? hitTest(Offset point, double tolerance) {
     String? closestId;
     var closest = tolerance;
-    for (final MapEntry(key: id, value: path) in _paths.entries) {
+    for (final MapEntry(key: id, value: (path, bounds)) in _paths.entries) {
+      // The bounds hold every control point, so the curve lies inside them
+      if (!bounds.inflate(closest).contains(point)) continue;
       final distance = path.distanceTo(point);
       if (distance <= closest) {
         closest = distance;

@@ -33,8 +33,19 @@ void main() {
 
       registry.retain({'far'});
       expect(registry.hitTest(const Offset(50, 3), 8), 'far');
-      registry.clear('far');
+      registry.retain(const {});
       expect(registry.hitTest(const Offset(50, 10), 8), isNull);
+    });
+
+    test('hits curves through their bounds, including the arrow head', () {
+      final curve = EdgePathFactory.curved(Offset.zero, const Offset(100, 0), bend: 0.5);
+      final registry = EdgeHitRegistry()
+        ..report('curve', curve)
+        ..report('line', EdgePathFactory.straight(const Offset(0, 200), const Offset(100, 200)));
+
+      expect(registry.hitTest(curve.labelPositionAt(0.5)!.position, 2), 'curve');
+      expect(registry.hitTest(const Offset(99, 200), 2), 'line');
+      expect(registry.hitTest(const Offset(50, 100), 8), isNull);
     });
   });
 
