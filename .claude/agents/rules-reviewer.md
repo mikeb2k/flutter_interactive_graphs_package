@@ -19,7 +19,7 @@ Report each hit as `file:line — rule — what to change`.
 2. **Imports (example)**: `package:flutter/material.dart` / `cupertino.dart` → `package:material_ui/material_ui.dart` / `cupertino_ui`. Any `package:interactive_graphs/src/` → the barrel.
 3. **Relative imports** anywhere except `part` / `part of` → `package:` imports.
 4. **Globals**: top-level `final`, `const`, `var` or function declarations other than `main()` (and Riverpod providers in `example/`) → move into a class or extension. Private `static` members outside static-only classes → instance members.
-5. **Colors**: `Color(0x` or `Colors.` in `lib/**` outside `lib/src/theme/` defaults, or anywhere in `example/lib/**` → `GraphThemeData` / `colorScheme`.
+5. **Colors**: `Color(0x` or `Colors.` in `lib/**` outside `lib/src/theme/` defaults, or in `example/lib/**` outside `example/lib/theme/` → `GraphThemeData` / `colorScheme` / `NodePalette`.
 6. **Exports**: a new public class or extension in `lib/src/**` not exported from `lib/interactive_graphs.dart`; an export of an `@internal` member.
 7. **Build methods**: an inline ternary inside a `build` method; a helper method declared above `build`.
 8. **Example features** (`example/lib/features/<feature>/`): missing any of `views/ widgets/ models/ providers/`; a view file declaring a private `class _…` widget or a `_build…(` method; a feature importing another feature's `widgets/`, `models/` or `providers/`; string literals passed to `Text(`, `tooltip:`, `label:` instead of the feature's `Copy` class; `StateProvider` in new code.
