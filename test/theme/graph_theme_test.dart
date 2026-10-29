@@ -76,6 +76,12 @@ void main() {
     expect(from.lerp(to, 1).edgeColor, to.edgeColor);
     expect(from.lerp(null, 0.5), from);
     expect(from.copyWith(edgeColor: to.edgeColor).edgeColor, to.edgeColor);
+
+    const bold = TextStyle(fontWeight: FontWeight.bold);
+    final withBold = from.copyWith(labelTextStyle: bold);
+    expect(withBold.labelTextStyle, bold);
+    expect(withBold, isNot(from));
+    expect(withBold.hashCode, isNot(from.hashCode));
   });
 
   testWidgets('edges and labels draw in the theme colors and text style', (tester) async {

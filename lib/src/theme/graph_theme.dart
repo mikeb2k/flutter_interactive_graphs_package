@@ -44,7 +44,7 @@ final class GraphThemeData extends ThemeExtension<GraphThemeData> {
     this.debugViewportColor = const Color(0xFF448AFF),
   });
 
-  /// The graph look derived from [scheme]: edges in `outline`, back edges and self loops in
+  /// The graph look derived from [scheme]: edges in `outline` (back edges faded), self loops in
   /// `error`, labels in `onSurface` on `surfaceContainerHigh` with an `outlineVariant` border, and
   /// [labelTextStyle] as the label text.
   factory GraphThemeData.fromColorScheme(ColorScheme scheme, {TextStyle? labelTextStyle}) => GraphThemeData(
@@ -211,7 +211,8 @@ final class EdgeLabelStyle {
   /// Font size, the theme's label text size when `null`.
   final double? fontSize;
 
-  /// Font weight, the ambient one when `null`.
+  /// Font weight; `null` keeps the weight of [GraphThemeData.labelTextStyle] (the theme's
+  /// `labelMedium` by default).
   final FontWeight? fontWeight;
 
   /// Padding around the text.
