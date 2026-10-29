@@ -2,7 +2,6 @@ import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:interactive_graphs/src/model/graph.dart';
-import 'package:interactive_graphs/src/model/graph_node.dart';
 
 /// A user-supplied layout algorithm: returns [graph] with new node positions (centers, in logical
 /// pixels). Finish with [Graph.withClassifiedEdges] so edges get their [EdgeType].
@@ -48,14 +47,8 @@ sealed class LayoutConfig {
   /// A layout computed by [provider]. See [CustomLayoutConfig].
   const factory LayoutConfig.custom(LayoutProvider provider, {Size canvasSize}) = CustomLayoutConfig._positional;
 
-  /// Size of a node without explicit or measured size, in logical pixels.
-  static const double defaultNodeSize = GraphNode.defaultSize;
-
   /// Size of the canvas the viewer lays the graph out for.
   final Size canvasSize;
-
-  /// Fallback node size used for nodes that have no size yet.
-  double get nodeSize => defaultNodeSize;
 
   /// Returns a copy with [canvasSize] replaced.
   LayoutConfig withCanvas(Size canvasSize);

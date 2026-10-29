@@ -163,4 +163,37 @@ void main() {
   test('an empty graph stays empty', () {
     expect(run(Graph.empty()).nodes, isEmpty);
   });
+
+  test('polls checkCancelled and stops when it throws', () {
+    final chain = graphOf(['A', 'B', 'C'], [('A', 'B'), ('B', 'C')]);
+    var polls = 0;
+    GraphLayout.run(chain, const LayoutConfig.hierarchical(), checkCancelled: () => polls++);
+    expect(polls, greaterThan(0));
+
+    expect(
+      () => GraphLayout.run(
+        chain,
+        const LayoutConfig.hierarchical(),
+        checkCancelled: () => throw const LayoutCancelledException(),
+      ),
+      throwsA(isA<LayoutCancelledException>()),
+    );
+  });
+
+  test('back edges and self loops are set aside before levels are assigned', () {
+    final graph = Graph.build(
+      (g) => g
+        ..nodes(['A', 'B', 'C'])
+        ..edges([('A', 'B'), ('B', 'C'), ('C', 'A'), ('B', 'B')]),
+    );
+    final result = run(graph);
+    double x(String id) => result.nodes[id]!.position.dx;
+
+    expect(x('A'), lessThan(x('B')));
+    expect(x('B'), lessThan(x('C')));
+    expect(result.edge('C->A')!.type, EdgeType.back);
+    expect(result.edge('B->B')!.type, EdgeType.selfLoop);
+    expect(result.edge('A->B')!.type, EdgeType.forward);
+    expect(result.wouldCreateCycle('C', 'A'), isTrue);
+  });
 }

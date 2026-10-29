@@ -20,7 +20,7 @@ abstract final class GraphLayout {
   /// [checkCancelled] is polled during long layouts; throw [LayoutCancelledException] from it to
   /// abort.
   static Graph run(Graph graph, LayoutConfig config, {void Function()? checkCancelled}) => switch (config) {
-    HierarchicalLayoutConfig() => HierarchicalLayout.run(graph, config),
+    HierarchicalLayoutConfig() => HierarchicalLayout.run(graph, config, checkCancelled: checkCancelled),
     ForceDirectedLayoutConfig() => ForceDirectedLayout.run(graph, config, checkCancelled: checkCancelled),
     CustomLayoutConfig(:final provider) => provider(graph, config),
   };

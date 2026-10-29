@@ -22,7 +22,7 @@ void main() {
   Map<String, Offset> bruteForce(Graph graph, ForceDirectedLayoutConfig config) {
     final ids = graph.nodes.keys.toList();
     final n = ids.length;
-    final sizes = [for (final id in ids) ForceDirectedLayout.averageSize(graph.nodes[id]!, config.nodeSize)];
+    final sizes = [for (final id in ids) ForceDirectedLayout.averageSize(graph.nodes[id]!, GraphNode.defaultSize)];
     final avgSize = sizes.reduce((a, b) => a + b) / n;
     final scale = ForceDirectedLayout.boundsScale(n, avgSize, config.canvasSize.width, config.canvasSize.height);
     final width = config.canvasSize.width * scale;
