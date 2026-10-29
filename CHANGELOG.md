@@ -18,3 +18,5 @@ First release: a Flutter port of [Kuiver](https://github.com/justdeko/kuiver).
   label size.
 * `HierarchicalLayout.run` polls `checkCancelled` like the force-directed layout.
 * `CurvedEdgePath` and `SelfLoopEdgePath` share the sealed `QuadraticEdgePath` base.
+* `GraphThemeData.labelTextStyle` (12 px by default) and `labelBorderColor` (transparent for
+  none) are non-nullable, so `copyWith` reaches them.

@@ -286,7 +286,7 @@ class EdgeLabel extends StatelessWidget {
     );
   }
 
-  TextStyle _textStyle(GraphThemeData theme) => (theme.labelTextStyle ?? const TextStyle(fontSize: 12)).copyWith(
+  TextStyle _textStyle(GraphThemeData theme) => theme.labelTextStyle.copyWith(
     color: style.textColor ?? theme.labelTextColor,
     fontSize: style.fontSize,
     fontWeight: style.fontWeight,
@@ -294,7 +294,7 @@ class EdgeLabel extends StatelessWidget {
 
   Border? _border(GraphThemeData theme) {
     final color = style.borderColor ?? theme.labelBorderColor;
-    if (color == null || style.borderWidth <= 0) return null;
+    if (color.a == 0 || style.borderWidth <= 0) return null;
     return Border.all(color: color, width: style.borderWidth);
   }
 }

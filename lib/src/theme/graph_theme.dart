@@ -27,7 +27,7 @@ final class GraphThemeData extends ThemeExtension<GraphThemeData> {
     this.labelTextColor = defaultEdgeColor,
     this.labelBackgroundColor = const Color(0xE6FFFFFF),
     this.labelBorderColor = const Color(0x4D000000),
-    this.labelTextStyle,
+    this.labelTextStyle = defaultLabelTextStyle,
     this.debugGraphBoundsColor = const Color(0xFFFF0000),
     this.debugViewportColor = const Color(0xFF0000FF),
   });
@@ -39,35 +39,41 @@ final class GraphThemeData extends ThemeExtension<GraphThemeData> {
     this.labelTextColor = const Color(0xFFE6E1E5),
     this.labelBackgroundColor = const Color(0xE6202124),
     this.labelBorderColor = const Color(0x4DFFFFFF),
-    this.labelTextStyle,
+    this.labelTextStyle = defaultLabelTextStyle,
     this.debugGraphBoundsColor = const Color(0xFFFF5252),
     this.debugViewportColor = const Color(0xFF448AFF),
   });
 
   /// The graph look derived from [scheme]: edges in `outline` (back edges faded), self loops in
   /// `error`, labels in `onSurface` on `surfaceContainerHigh` with an `outlineVariant` border, and
-  /// [labelTextStyle] as the label text.
-  factory GraphThemeData.fromColorScheme(ColorScheme scheme, {TextStyle? labelTextStyle}) => GraphThemeData(
-    edgeColor: scheme.outline,
-    backEdgeColor: scheme.error,
-    labelTextColor: scheme.onSurface,
-    labelBackgroundColor: scheme.surfaceContainerHigh,
-    labelBorderColor: scheme.outlineVariant,
-    labelTextStyle: labelTextStyle,
-    debugGraphBoundsColor: scheme.error,
-    debugViewportColor: scheme.primary,
-  );
+  /// [labelTextStyle] (12 px by default) as the label text.
+  factory GraphThemeData.fromColorScheme(ColorScheme scheme, {TextStyle labelTextStyle = defaultLabelTextStyle}) =>
+      GraphThemeData(
+        edgeColor: scheme.outline,
+        backEdgeColor: scheme.error,
+        labelTextColor: scheme.onSurface,
+        labelBackgroundColor: scheme.surfaceContainerHigh,
+        labelBorderColor: scheme.outlineVariant,
+        labelTextStyle: labelTextStyle,
+        debugGraphBoundsColor: scheme.error,
+        debugViewportColor: scheme.primary,
+      );
 
   /// The graph look derived from [theme]: [GraphThemeData.fromColorScheme] of its color scheme,
   /// with `textTheme.labelMedium` as the label text.
-  factory GraphThemeData.fromTheme(ThemeData theme) =>
-      GraphThemeData.fromColorScheme(theme.colorScheme, labelTextStyle: theme.textTheme.labelMedium);
+  factory GraphThemeData.fromTheme(ThemeData theme) => GraphThemeData.fromColorScheme(
+    theme.colorScheme,
+    labelTextStyle: theme.textTheme.labelMedium ?? defaultLabelTextStyle,
+  );
 
   /// Edge color of the neutral light palette and of `EdgeStyle`.
   static const Color defaultEdgeColor = Color(0xFF000000);
 
   /// Back-edge and self-loop color of the neutral light palette.
   static const Color defaultBackEdgeColor = Color(0xFFFF6B6B);
+
+  /// Label text style without a Material text theme.
+  static const TextStyle defaultLabelTextStyle = TextStyle(fontSize: 12);
 
   /// Color of forward and cross edges.
   final Color edgeColor;
@@ -81,12 +87,12 @@ final class GraphThemeData extends ThemeExtension<GraphThemeData> {
   /// Edge label background.
   final Color labelBackgroundColor;
 
-  /// Edge label border, or `null` for none.
-  final Color? labelBorderColor;
+  /// Edge label border; a fully transparent color draws none.
+  final Color labelBorderColor;
 
-  /// Base text style of edge labels (font, size, weight), 12 px when `null`. [labelTextColor] and
-  /// the fields of `EdgeLabelStyle` are applied on top.
-  final TextStyle? labelTextStyle;
+  /// Base text style of edge labels (font, size, weight). [labelTextColor] and the fields of
+  /// `EdgeLabelStyle` are applied on top.
+  final TextStyle labelTextStyle;
 
   /// Graph bounds drawn by `GraphViewerConfig.showDebugBounds`.
   final Color debugGraphBoundsColor;
@@ -123,8 +129,8 @@ final class GraphThemeData extends ThemeExtension<GraphThemeData> {
       backEdgeColor: Color.lerp(backEdgeColor, other.backEdgeColor, t)!,
       labelTextColor: Color.lerp(labelTextColor, other.labelTextColor, t)!,
       labelBackgroundColor: Color.lerp(labelBackgroundColor, other.labelBackgroundColor, t)!,
-      labelBorderColor: Color.lerp(labelBorderColor, other.labelBorderColor, t),
-      labelTextStyle: TextStyle.lerp(labelTextStyle, other.labelTextStyle, t),
+      labelBorderColor: Color.lerp(labelBorderColor, other.labelBorderColor, t)!,
+      labelTextStyle: TextStyle.lerp(labelTextStyle, other.labelTextStyle, t)!,
       debugGraphBoundsColor: Color.lerp(debugGraphBoundsColor, other.debugGraphBoundsColor, t)!,
       debugViewportColor: Color.lerp(debugViewportColor, other.debugViewportColor, t)!,
     );

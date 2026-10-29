@@ -36,7 +36,7 @@ void main() {
     expect(resolved.labelBackgroundColor, scheme.surfaceContainerHigh);
     expect(resolved.labelBorderColor, scheme.outlineVariant);
     expect(resolved.labelTextStyle, ambient.textTheme.labelMedium);
-    expect(resolved.labelTextStyle?.fontSize, isNotNull);
+    expect(resolved.labelTextStyle.fontSize, isNotNull);
     expect(resolved, GraphThemeData.fromTheme(ambient));
   });
 
@@ -122,5 +122,25 @@ void main() {
     final text = tester.widget<Text>(find.text('x'));
     expect(text.style?.color, const Color(0xFF123456));
     expect(text.style?.fontSize, 20);
+  });
+
+  testWidgets('label text and border always have a value; a transparent border draws none', (tester) async {
+    const theme = GraphThemeData();
+    expect(theme.labelTextStyle.fontSize, 12);
+    expect(GraphThemeData.fromColorScheme(dark.colorScheme).labelTextStyle.fontSize, 12);
+    const none = Color(0x00000000);
+    expect(theme.copyWith(labelBorderColor: none).labelBorderColor, none);
+
+    await tester.pumpWidget(
+      const GraphTheme(
+        data: GraphThemeData(labelBorderColor: none),
+        child: Directionality(
+          textDirection: TextDirection.ltr,
+          child: EdgeLabel(text: 'x'),
+        ),
+      ),
+    );
+    final box = tester.widget<DecoratedBox>(find.byType(DecoratedBox));
+    expect((box.decoration as BoxDecoration).border, isNull);
   });
 }
