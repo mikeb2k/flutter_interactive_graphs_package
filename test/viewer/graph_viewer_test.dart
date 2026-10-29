@@ -288,6 +288,40 @@ void main() {
     expect(controller.layoutedGraph.nodes['n1']!.position, isNot(Offset.zero));
   });
 
+  Graph twins() => Graph.build(
+    (g) => g
+      ..nodes(['A', 'B'])
+      ..edge('A', 'B', id: 'p')
+      ..edge('A', 'B', id: 'q'),
+  );
+
+  for (final batched in [true, false]) {
+    testWidgets('parallel edges of a shape that does not fan out run straight between the nodes '
+        '(${batched ? 'batched' : 'edgeBuilder'})', (tester) async {
+      GraphEdge? tapped;
+      final controller = GraphViewerController(graph: twins());
+      addTearDown(controller.dispose);
+      const style = EdgeStyle(shape: EdgeShape.orthogonal, showArrow: false);
+      await tester.pumpWidget(
+        host(
+          GraphViewer(
+            controller: controller,
+            config: const GraphViewerConfig(edgeHitTolerance: 2),
+            callbacks: GraphInteractionCallbacks(onEdgeTap: (edge) => tapped = edge),
+            edgeStyle: batched ? (details) => style : null,
+            edgeBuilder: batched ? null : (context, details) => EdgeLine(details: details, style: style),
+            nodeBuilder: (context, details) => box(details),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final middle = (centerOf(controller, 'A') + centerOf(controller, 'B')) / 2;
+      await tester.tapAt(middle);
+      expect(tapped, isNotNull);
+    });
+  }
+
   test('config copyWith reaches every field', () {
     const config = GraphViewerConfig();
     expect(config.animateLayout, isTrue);

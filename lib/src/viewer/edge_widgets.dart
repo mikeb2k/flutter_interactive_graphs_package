@@ -19,6 +19,7 @@ final class EdgeDetails {
     this.bend,
     this.isSelected = false,
     this.isHovered = false,
+    this.unbentEndpoints,
   });
 
   /// The edge, with its classified [GraphEdge.type].
@@ -39,6 +40,20 @@ final class EdgeDetails {
   /// Whether the pointer is over the edge; always `false` on touch.
   final bool isHovered;
 
+  /// [from] and [to] as they would be without [bend], for shapes that don't fan out. Set by the
+  /// viewer for bent edges.
+  @internal
+  final (Offset, Offset)? unbentEndpoints;
+
+  /// These details as [shape] draws them: without the bend (and with the unbent endpoints) when
+  /// the shape doesn't fan parallel edges out. Self loops keep their bend, it nests them.
+  @internal
+  EdgeDetails forShape(EdgeShape shape) {
+    if (bend == null || edge.isSelfLoop || shape.fansOut) return this;
+    final (unbentFrom, unbentTo) = unbentEndpoints ?? (from, to);
+    return EdgeDetails(edge: edge, from: unbentFrom, to: unbentTo, isSelected: isSelected, isHovered: isHovered);
+  }
+
   @override
   bool operator ==(Object other) =>
       other is EdgeDetails &&
@@ -47,10 +62,11 @@ final class EdgeDetails {
       other.to == to &&
       other.bend == bend &&
       other.isSelected == isSelected &&
-      other.isHovered == isHovered;
+      other.isHovered == isHovered &&
+      other.unbentEndpoints == unbentEndpoints;
 
   @override
-  int get hashCode => Object.hash(edge, from, to, bend, isSelected, isHovered);
+  int get hashCode => Object.hash(edge, from, to, bend, isSelected, isHovered, unbentEndpoints);
 }
 
 /// Builds the widget of an edge. The widget fills the edge layer and draws in its coordinates;
@@ -128,7 +144,8 @@ class EdgeLine extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final path = style.createPath(details.edge, _bend(), details.from, details.to);
+    final shown = details.forShape(style.shape);
+    final path = style.createPath(shown.edge, shown.bend, shown.from, shown.to);
     EdgeHitScope.report(context, path);
     final line = CustomPaint(painter: _EdgePathPainter(path, style));
     final labelPosition = _labelPosition(path);
@@ -145,12 +162,6 @@ class EdgeLine extends StatelessWidget {
         ),
       ],
     );
-  }
-
-  double? _bend() {
-    final bend = details.bend;
-    if (bend == null || details.edge.isSelfLoop || style.shape.fansOut) return bend;
-    return null;
   }
 
   EdgeLabelPosition? _labelPosition(EdgePath path) {
