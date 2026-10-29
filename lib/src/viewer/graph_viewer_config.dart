@@ -35,8 +35,9 @@ final class GraphViewerConfig {
     this.relayoutPolicy = RelayoutPolicy.keepManual,
     this.transformSpring = defaultTransformSpring,
     this.layoutSpring = defaultLayoutSpring,
+    this.animateLayout = true,
     this.animateInitialPlacement = false,
-    this.enterDuration,
+    this.enterDuration = Duration.zero,
   }) : assert(minScale > 0 && minScale <= maxScale),
        assert(contentPadding > 0 && contentPadding <= 1),
        assert(zoomStep > 1);
@@ -110,14 +111,17 @@ final class GraphViewerConfig {
   /// Spring of animated zoom and pan.
   final SpringDescription transformSpring;
 
-  /// Spring that moves nodes when the layout changes, or `null` to jump.
-  final SpringDescription? layoutSpring;
+  /// Spring that moves nodes when the layout changes.
+  final SpringDescription layoutSpring;
+
+  /// Whether layout changes move the nodes along [layoutSpring]; `false` makes them jump.
+  final bool animateLayout;
 
   /// Whether the first placement animates too.
   final bool animateInitialPlacement;
 
-  /// Fade-in of the graph once it is laid out and fitted, or `null` to show it at once.
-  final Duration? enterDuration;
+  /// Fade-in of the graph once it is laid out and fitted; [Duration.zero] shows it at once.
+  final Duration enterDuration;
 
   /// Returns a copy with the given fields replaced.
   GraphViewerConfig copyWith({
@@ -139,6 +143,7 @@ final class GraphViewerConfig {
     RelayoutPolicy? relayoutPolicy,
     SpringDescription? transformSpring,
     SpringDescription? layoutSpring,
+    bool? animateLayout,
     bool? animateInitialPlacement,
     Duration? enterDuration,
   }) => GraphViewerConfig(
@@ -160,6 +165,7 @@ final class GraphViewerConfig {
     relayoutPolicy: relayoutPolicy ?? this.relayoutPolicy,
     transformSpring: transformSpring ?? this.transformSpring,
     layoutSpring: layoutSpring ?? this.layoutSpring,
+    animateLayout: animateLayout ?? this.animateLayout,
     animateInitialPlacement: animateInitialPlacement ?? this.animateInitialPlacement,
     enterDuration: enterDuration ?? this.enterDuration,
   );
@@ -185,6 +191,7 @@ final class GraphViewerConfig {
       other.relayoutPolicy == relayoutPolicy &&
       other.transformSpring == transformSpring &&
       other.layoutSpring == layoutSpring &&
+      other.animateLayout == animateLayout &&
       other.animateInitialPlacement == animateInitialPlacement &&
       other.enterDuration == enterDuration;
 
@@ -208,6 +215,7 @@ final class GraphViewerConfig {
     relayoutPolicy,
     transformSpring,
     layoutSpring,
+    animateLayout,
     animateInitialPlacement,
     enterDuration,
   ]);

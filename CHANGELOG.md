@@ -20,3 +20,5 @@ First release: a Flutter port of [Kuiver](https://github.com/justdeko/kuiver).
 * `CurvedEdgePath` and `SelfLoopEdgePath` share the sealed `QuadraticEdgePath` base.
 * `GraphThemeData.labelTextStyle` (12 px by default) and `labelBorderColor` (transparent for
   none) are non-nullable, so `copyWith` reaches them.
+* `GraphViewerConfig.animateLayout` turns layout animation off; `layoutSpring` and
+  `enterDuration` (default `Duration.zero`) are non-nullable, so `copyWith` reaches every field.
