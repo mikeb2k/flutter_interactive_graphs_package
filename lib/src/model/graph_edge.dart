@@ -54,7 +54,8 @@ final class GraphEdge {
   /// Whether the edge starts and ends at the same node.
   bool get isSelfLoop => fromId == toId;
 
-  /// Returns a copy with the given fields replaced. The [id] is kept unless a new one is passed.
+  /// Returns a copy with the given fields replaced. The [id] is kept unless a new one is passed. Use
+  /// [withAnchors] to clear anchors.
   GraphEdge copyWith({
     String? fromId,
     String? toId,
@@ -70,6 +71,10 @@ final class GraphEdge {
     toAnchor: toAnchor ?? this.toAnchor,
     id: id ?? this.id,
   );
+
+  /// Returns a copy with both anchors replaced; `null` attaches that end to the node's boundary.
+  GraphEdge withAnchors({String? fromAnchor, String? toAnchor}) =>
+      GraphEdge(fromId, toId, type: type, fromAnchor: fromAnchor, toAnchor: toAnchor, id: id);
 
   @override
   bool operator ==(Object other) =>

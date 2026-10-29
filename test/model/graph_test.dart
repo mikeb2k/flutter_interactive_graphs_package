@@ -344,6 +344,14 @@ void main() {
       expect(const GraphEdge('A', 'A').isSelfLoop, isTrue);
     });
 
+    test('withAnchors replaces both anchors, null included, and keeps the id', () {
+      const edge = GraphEdge('A', 'B', fromAnchor: 'right', toAnchor: 'left', id: 'e');
+
+      expect(edge.withAnchors(), const GraphEdge('A', 'B', id: 'e'));
+      expect(edge.withAnchors(toAnchor: 'top').fromAnchor, isNull);
+      expect(edge.withAnchors(toAnchor: 'top').toAnchor, 'top');
+    });
+
     test('node copyWith and withSize', () {
       const node = GraphNode('A', size: Size(10, 10));
 
