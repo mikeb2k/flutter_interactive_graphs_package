@@ -210,6 +210,11 @@ class _NodeHostState extends State<NodeHost> {
   late bool _isDragging;
   Offset? _lastDragPosition;
 
+  // The last built content and what it was built from; reused while neither changes
+  Widget? _content;
+  NodeDetails? _contentDetails;
+  GraphNodeBuilder? _contentBuilder;
+
   GraphInteraction get _interaction => widget.controller.interaction;
 
   String get _id => widget.node.id;
@@ -248,8 +253,20 @@ class _NodeHostState extends State<NodeHost> {
     return NodeScope(
       nodeId: _id,
       anchors: widget.anchors,
-      child: _withGestures(NodeBox(child: _sized(widget.builder(context, details)))),
+      child: _withGestures(NodeBox(child: _sized(_built(details)))),
     );
+  }
+
+  /// The builder's widget for [details]. It runs in a [Builder] of its own, so the inherited widgets
+  /// it reads rebuild it even while the cached widget is reused.
+  Widget _built(NodeDetails details) {
+    final builder = widget.builder;
+    if (_content case final content? when details == _contentDetails && identical(builder, _contentBuilder)) {
+      return content;
+    }
+    _contentDetails = details;
+    _contentBuilder = builder;
+    return _content = Builder(builder: (context) => builder(context, details));
   }
 
   Widget _sized(Widget content) {

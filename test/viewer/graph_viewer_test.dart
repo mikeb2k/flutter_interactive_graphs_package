@@ -322,6 +322,24 @@ void main() {
     });
   }
 
+  testWidgets('moving one node rebuilds only that node', (tester) async {
+    final builds = <String, int>{};
+    final controller = await pumpViewer(
+      tester,
+      nodeBuilder: (context, details) {
+        builds.update(details.node.id, (n) => n + 1, ifAbsent: () => 1);
+        return box(details);
+      },
+    );
+    final before = Map.of(builds);
+
+    controller.moveNodeBy('A', const Offset(0, 30));
+    await tester.pumpAndSettle();
+
+    expect(builds['A'], greaterThan(before['A']!));
+    expect(builds['B'], before['B']);
+  });
+
   test('config copyWith reaches every field', () {
     const config = GraphViewerConfig();
     expect(config.animateLayout, isTrue);
