@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(flutter analyze*)",
+      "Bash(flutter test*)",
+      "Bash(flutter pub get*)",
+      "Bash(flutter pub add *)",
+      "Bash(flutter pub upgrade *)",
+      "Bash(flutter pub outdated*)",
+      "Bash(flutter --version)",
+      "Bash(dart format *)",
+      "Bash(dart fix --dry-run*)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git show*)",
+      "Bash(flutter build web*)",
+      "Bash(flutter devices*)"
+    ],
+    "deny": [
+      "Edit(**/pubspec.lock)",
+      "Edit(**/CLAUDE.md)",
+      "Edit(**/CLAUDE.local.md)",
+      "Bash(flutter pub publish*)",
+      "Bash(dart pub publish*)",
+      "Bash(git commit *--no-verify*)",
+      "Bash(git commit -n *)",
+      "Bash(git commit * -n *)",
+      "Bash(git -c core.hooksPath*)",
+      "Bash(git config *core.hooksPath*)",
+      "Bash(git push *--force*)",
+      "Bash(git push -f*)",
+      "Bash(git push * -f*)",
+      "Bash(git push * +*)",
+      "Bash(rm -rf /)",
+      "Bash(rm -rf / *)"
+    ]
+  },
+  "extraKnownMarketplaces": {
+    "ui-ux-pro-max-skill": {
+      "source": {
+        "source": "github",
+        "repo": "nextlevelbuilder/ui-ux-pro-max-skill"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "ui-ux-pro-max@ui-ux-pro-max-skill": true
+  }
+}

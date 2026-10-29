@@ -1,0 +1,24 @@
+name: interactive_graphs_example
+description: "Example app for interactive_graphs: the showcase, playground and stress-test screens."
+publish_to: none
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.13.0
+  flutter: ">=3.47.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_riverpod: ^3.4.3
+  interactive_graphs:
+    path: ../
+  material_ui: ^1.8.0
+
+dev_dependencies:
+  flutter_lints: ^6.0.0
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true

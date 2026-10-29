@@ -1,0 +1,9 @@
+interactive_graphs
+
+This package is a Flutter port of Kuiver (https://github.com/justdeko/kuiver),
+a Kotlin Multiplatform graph visualization library by Denis Koljada,
+licensed under the Apache License, Version 2.0.
+
+The graph model, the hierarchical and force-directed layout algorithms, the
+edge geometry and the viewer behaviour follow Kuiver's design and were
+re-implemented in Dart. The example app ports Kuiver's sample screens.
