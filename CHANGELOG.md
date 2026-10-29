@@ -16,3 +16,4 @@ First release: a Flutter port of [Kuiver](https://github.com/justdeko/kuiver).
   `ColorScheme` and `TextTheme` (`GraphThemeData.fromTheme`), overridable per app (theme
   extension) or per subtree (`GraphTheme`). `EdgeLabelStyle.fontSize` defaults to the theme's
   label size.
+* `HierarchicalLayout.run` polls `checkCancelled` like the force-directed layout.

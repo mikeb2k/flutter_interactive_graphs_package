@@ -119,6 +119,9 @@ void main() {
 
       expect(graph.edge('A->B')?.type, EdgeType.forward);
       expect(graph.edge('B->A')?.type, EdgeType.back);
+      expect(graph.edges.every((edge) => graph.edge(edge.id) == edge), isTrue);
+      expect(graph.edgesBetween('A', 'B').single.type, EdgeType.forward);
+      expect(graph.wouldCreateCycle('A', 'B'), isTrue);
     });
   });
 

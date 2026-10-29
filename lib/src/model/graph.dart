@@ -1,4 +1,5 @@
 import 'dart:collection';
+import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
@@ -48,13 +49,7 @@ final class Graph {
       nodes.forEach(g.addNode);
       edges.forEach(g.addEdge);
     });
-    final types = unclassified.classifyAllEdges();
-    return Graph.build((g) {
-      nodes.forEach(g.addNode);
-      for (final MapEntry(key: edge, value: type) in types.entries) {
-        g.addEdge(edge.copyWith(type: type));
-      }
-    });
+    return unclassified._withEdgeTypes(unclassified.classifyAllEdges());
   }
 
   /// Nodes by id, in insertion order. Unmodifiable.
@@ -313,7 +308,7 @@ final class Graph {
           if (!index.containsKey(neighbor)) {
             enter(neighbor);
           } else if (onStack.contains(neighbor)) {
-            lowLink[nodeId] = _min(lowLink[nodeId]!, index[neighbor]!);
+            lowLink[nodeId] = math.min(lowLink[nodeId]!, index[neighbor]!);
           }
           continue;
         }
@@ -331,7 +326,7 @@ final class Graph {
         }
         if (callStack.isNotEmpty) {
           final parentId = callStack.last.$1;
-          lowLink[parentId] = _min(lowLink[parentId]!, lowLink[nodeId]!);
+          lowLink[parentId] = math.min(lowLink[parentId]!, lowLink[nodeId]!);
         }
       }
     }
@@ -364,6 +359,12 @@ final class Graph {
     return result;
   }
 
+  /// A copy whose edges carry their type in [types], which [classifyAllEdges] computed for them.
+  Graph _withEdgeTypes(Map<GraphEdge, EdgeType> types) {
+    final updatedEdges = <GraphEdge>{for (final edge in edges) edge.copyWith(type: types[edge])};
+    return Graph._(nodes, updatedEdges, _adjacency, {for (final edge in updatedEdges) edge.id: edge});
+  }
+
   void _requireEndpoints(GraphEdge edge) {
     for (final id in [edge.fromId, edge.toId]) {
       if (!nodes.containsKey(id)) {
@@ -371,8 +372,6 @@ final class Graph {
       }
     }
   }
-
-  int _min(int a, int b) => a < b ? a : b;
 
   @override
   bool operator ==(Object other) =>

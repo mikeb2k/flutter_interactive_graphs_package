@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:interactive_graphs/src/layout/layout_config.dart';
 import 'package:interactive_graphs/src/model/graph.dart';
 import 'package:interactive_graphs/src/model/graph_edge.dart';
+import 'package:interactive_graphs/src/model/graph_node.dart';
 
 /// Sugiyama-style layered layout.
 ///
@@ -28,8 +29,17 @@ abstract final class HierarchicalLayout {
   static const int _sweeps = 10;
 
   /// Lays [graph] out. Positions are node centers; the result has every edge classified.
-  static Graph run(Graph graph, HierarchicalLayoutConfig config) {
-    final acyclicEdges = graph.hasCycles() ? _withoutBackEdges(graph) : graph.edges.toList();
+  ///
+  /// [checkCancelled] is polled between the phases and every crossing-reduction round.
+  static Graph run(Graph graph, HierarchicalLayoutConfig config, {void Function()? checkCancelled}) {
+    final check = checkCancelled ?? () {};
+    check();
+    // Cycle removal: the depth-first classification sets back edges and self-loops aside
+    final types = graph.classifyAllEdges();
+    final acyclicEdges = [
+      for (final edge in graph.edges)
+        if (types[edge] != EdgeType.back && types[edge] != EdgeType.selfLoop) edge,
+    ];
 
     final parents = <String, Set<String>>{};
     final children = <String, Set<String>>{};
@@ -45,7 +55,8 @@ abstract final class HierarchicalLayout {
     }
     final maxLevel = nodesByLevel.keys.fold(0, math.max);
 
-    final ordered = _minimizeCrossings(nodesByLevel, maxLevel, parents, children);
+    check();
+    final ordered = _minimizeCrossings(nodesByLevel, maxLevel, parents, children, check);
     final withGaps = _addBypassGaps(graph, ordered, levels);
 
     final indexInLevel = <String, int>{};
@@ -55,7 +66,8 @@ abstract final class HierarchicalLayout {
       }
     }
 
-    final nodeSize = config.nodeSize;
+    check();
+    const nodeSize = GraphNode.defaultSize;
     var maxWidth = nodeSize;
     var maxHeight = nodeSize;
     if (graph.nodes.isNotEmpty) {
@@ -130,11 +142,13 @@ abstract final class HierarchicalLayout {
     int maxLevel,
     Map<String, Set<String>> parents,
     Map<String, Set<String>> children,
+    void Function() check,
   ) {
     final result = {for (final entry in nodesByLevel.entries) entry.key: List.of(entry.value)};
     var unchangedRounds = 0;
 
     for (var round = 0; round < _sweeps; round++) {
+      check();
       final previous = {for (final entry in result.entries) entry.key: entry.value};
 
       for (var level = 1; level <= maxLevel; level++) {
@@ -217,47 +231,6 @@ abstract final class HierarchicalLayout {
       }
     }
     return result;
-  }
-
-  /// Edges that remain after a depth-first pass sets the back edges (and self-loops) aside.
-  static List<GraphEdge> _withoutBackEdges(Graph graph) {
-    final kept = <GraphEdge>[];
-    final visited = <String>{};
-    final inPath = <String>{};
-    final classified = <GraphEdge>{};
-    final outgoing = <String, List<GraphEdge>>{};
-    for (final edge in graph.edges) {
-      outgoing.putIfAbsent(edge.fromId, () => []).add(edge);
-    }
-    final stack = <(String, Iterator<GraphEdge>)>[];
-
-    void enter(String id) {
-      visited.add(id);
-      inPath.add(id);
-      stack.add((id, (outgoing[id] ?? const <GraphEdge>[]).iterator));
-    }
-
-    for (final start in graph.nodes.keys) {
-      if (visited.contains(start)) continue;
-      enter(start);
-      while (stack.isNotEmpty) {
-        final (id, edges) = stack.last;
-        if (!edges.moveNext()) {
-          inPath.remove(id);
-          stack.removeLast();
-          continue;
-        }
-        final edge = edges.current;
-        if (!classified.add(edge)) continue;
-        if (edge.isSelfLoop || inPath.contains(edge.toId)) continue;
-        kept.add(edge);
-        if (!visited.contains(edge.toId)) enter(edge.toId);
-      }
-    }
-    for (final edge in graph.edges) {
-      if (!classified.contains(edge)) kept.add(edge);
-    }
-    return kept;
   }
 }
 

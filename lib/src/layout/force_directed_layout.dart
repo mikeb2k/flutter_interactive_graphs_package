@@ -79,7 +79,7 @@ abstract final class ForceDirectedLayout {
     var sizeSum = 0.0;
     var sizeMax = 0.0;
     for (var i = 0; i < n; i++) {
-      final s = averageSize(graph.nodes[ids[i]]!, config.nodeSize);
+      final s = averageSize(graph.nodes[ids[i]]!, GraphNode.defaultSize);
       sizeAvg[i] = s;
       sizeSum += s;
       sizeMax = math.max(sizeMax, s);
