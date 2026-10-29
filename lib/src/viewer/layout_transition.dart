@@ -23,13 +23,13 @@ class LayoutTransition extends ChangeNotifier {
   SpringSimulation? _simulation;
 
   // Largest jump a node makes on the frame the transition ends
-  static const double _finalStep = 0.25;
+  double get _finalStep => 0.25;
 
   // Progress left below which a retarget starts from rest
-  static const double _minRemaining = 0.05;
+  double get _minRemaining => 0.05;
 
   // Cap on the progress speed carried into a retarget, per second
-  static const double _maxCarriedVelocity = 10;
+  double get _maxCarriedVelocity => 10.0;
 
   /// Whether nodes are moving.
   bool get isAnimating => _ticker.isActive;

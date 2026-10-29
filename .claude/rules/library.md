@@ -10,7 +10,7 @@ paths:
 
 - Code lives in `lib/src/<area>/` (`model`, `layout`, `edges`, `viewer`, `theme`); the package exposes only what `lib/interactive_graphs.dart` exports. Export every new public file there; never make users import `src/`.
 - Dependency direction: `viewer` → `edges`, `layout`, `theme` → `model`. `model/` and `layout/` never import `widgets.dart`, `rendering.dart` or anything with a `BuildContext` (only `dart:ui` geometry, `dart:math`, `foundation.dart` for `@immutable` / `listEquals`).
-- Use `@internal` (`package:meta`) for members other `src/` libraries need but users must not call; never export them from the barrel.
+- Use `@internal` (`package:meta`) for what other `src/` libraries need but users must not call. `@internal` classes are never exported from the barrel; `@internal` members of exported classes are fine (the analyzer warns any use outside the package). Viewer plumbing classes (render objects, registries, the layout transition) are `@internal` and stay unexported.
 
 ## Model and layouts
 

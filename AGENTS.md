@@ -48,7 +48,7 @@ Rerun only the agent whose findings you fixed.
 2. `model/` and `layout/` stay free of widgets, `BuildContext` and `ChangeNotifier`: pure functions over immutable data.
 3. TDD for logic: write the failing test first. Never weaken a lint or add `// ignore:` to make code pass.
 4. Every color the package draws has a default in `GraphThemeData` and is overridable (theme or parameter). No raw `Color(0x…)` anywhere else in `lib/`; the example takes colors from `Theme.of(context).colorScheme`.
-5. Public API is documented (`///`) and exported from the barrel; breaking changes bump `version` and get a `CHANGELOG.md` entry.
+5. Public API is documented (`///`) and exported from the barrel (`@internal` classes are not); breaking changes bump `version` and get a `CHANGELOG.md` entry.
 6. Never use global variables, constants or functions: make them members of the class that uses them (or an extension), `static` only when public or inside a static-only class. Only `main()` and Riverpod providers (example only) are top-level. Typedefs are fine. See `.claude/rules/flutter.md`.
 7. Any UI / UX work (the example screens, default node/edge/label visuals) starts with the `ui-ux-pro-max:ui-ux-pro-max` skill. See `.claude/rules/ui-ux.md`.
 8. Conventional Commits, small and focused. Never use `--no-verify`.
