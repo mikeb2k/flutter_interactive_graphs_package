@@ -12,4 +12,7 @@ First release: a Flutter port of [Kuiver](https://github.com/justdeko/kuiver).
   painters, parallel edge fan-out, per-edge widgets (`StyledEdge`, `EdgeLine`) or a batched painter.
 * Anchors (`GraphAnchor`, `GraphEdge.withAnchors`), node and edge selection and hover, node drag
   with relayout policies.
-* `GraphTheme` for colors and label style.
+* Follows the app's Material theme: `GraphThemeData` is a `ThemeExtension` derived from the
+  `ColorScheme` and `TextTheme` (`GraphThemeData.fromTheme`), overridable per app (theme
+  extension) or per subtree (`GraphTheme`). `EdgeLabelStyle.fontSize` defaults to the theme's
+  label size.

@@ -11,13 +11,13 @@ A Flutter package for interactive directed graphs (a Dart port of [Kuiver](https
 | `lib/src/layout/`        | `LayoutConfig` and the algorithms (`HierarchicalLayout`, `ForceDirectedLayout`, custom providers): pure Dart |
 | `lib/src/edges/`         | Edge geometry (`EdgePath`, `EdgePathFactory`), hit testing, labels, arrows, `EdgeStyle`, painting       |
 | `lib/src/viewer/`        | `GraphViewerController`, `GraphInteraction`, `GraphViewer` widget, node layer, anchors, transitions    |
-| `lib/src/theme/`         | `GraphTheme` / `GraphThemeData` (default colors, label style)                                          |
+| `lib/src/theme/`         | `GraphThemeData` (a `ThemeExtension`, derived from the app's `ColorScheme`/`TextTheme`), `GraphTheme` |
 | `example/`               | Demo app (`interactive_graphs_example`): web, Android, iOS, macOS, Linux, Windows                     |
 
 ## How the parts talk
 
 - Dependencies point one way: `viewer` → `edges`, `layout`, `theme` → `model`. `model` and `layout` import no Flutter UI (only `dart:ui` geometry types `Offset`/`Size`/`Rect`), so they run in an isolate and in plain unit tests.
-- The package depends on `flutter/widgets.dart` only, never on `material_ui` / `cupertino_ui`: it must work in any app. The example uses `material_ui`.
+- The package draws with `flutter/widgets.dart`; only `lib/src/theme/` imports `material_ui`, to follow the app's Material theme (`GraphTheme.of`: a `GraphTheme` widget, else a `GraphThemeData` theme extension, else derived from `ColorScheme` and `TextTheme`). The example uses `material_ui` throughout.
 - Graph space is logical pixels. Node `position` is the node's center. The viewer maps the center of the node positions to the viewport center, then applies `scale` (about the viewport center) and `offset`.
 
 ## Commands
@@ -44,10 +44,10 @@ Rerun only the agent whose findings you fixed.
 
 ## Hard rules (whole repo)
 
-1. The package imports `package:flutter/widgets.dart`, `foundation.dart`, `gestures.dart`, `rendering.dart`, `scheduler.dart`, `physics.dart`, `services.dart` only — never `material.dart` / `cupertino.dart` / `material_ui`. The example imports `package:material_ui/material_ui.dart` instead of `package:flutter/material.dart`.
+1. The package imports `package:flutter/widgets.dart`, `foundation.dart`, `gestures.dart`, `rendering.dart`, `scheduler.dart`, `physics.dart`, `services.dart`; `package:material_ui/material_ui.dart` only in `lib/src/theme/`. Never `package:flutter/material.dart` / `cupertino.dart` anywhere: the example imports `material_ui` instead.
 2. `model/` and `layout/` stay free of widgets, `BuildContext` and `ChangeNotifier`: pure functions over immutable data.
 3. TDD for logic: write the failing test first. Never weaken a lint or add `// ignore:` to make code pass.
-4. Every color the package draws has a default in `GraphThemeData` and is overridable (theme or parameter). No raw `Color(0x…)` anywhere else in `lib/`; the example takes colors from `Theme.of(context).colorScheme`.
+4. Every color the package draws comes from `GraphTheme.of(context)` (which follows the app's `ColorScheme`) or a parameter, and is overridable. Raw `Color(0x…)` only as `GraphThemeData` fallbacks in `lib/src/theme/`; the example takes colors from `Theme.of(context).colorScheme`.
 5. Public API is documented (`///`) and exported from the barrel (`@internal` classes are not); breaking changes bump `version` and get a `CHANGELOG.md` entry.
 6. Never use global variables, constants or functions: make them members of the class that uses them (or an extension), `static` only when public or inside a static-only class. Only `main()` and Riverpod providers (example only) are top-level. Typedefs are fine. See `.claude/rules/flutter.md`.
 7. Any UI / UX work (the example screens, default node/edge/label visuals) starts with the `ui-ux-pro-max:ui-ux-pro-max` skill. See `.claude/rules/ui-ux.md`.

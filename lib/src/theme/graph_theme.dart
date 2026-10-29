@@ -1,50 +1,72 @@
-import 'package:flutter/widgets.dart';
+import 'package:material_ui/material_ui.dart';
 
-/// Colors and label style the package draws with.
+/// Colors and label text style the package draws with.
 ///
-/// The package depends on `widgets` only, so it cannot read a Material `ColorScheme`; map your
-/// app theme once with a [GraphTheme] above the viewer:
+/// Viewers follow the app's Material theme on their own: [GraphTheme.of] derives the colors from
+/// the ambient [ColorScheme] and the label text from its [TextTheme] (see [GraphThemeData.fromTheme]),
+/// so light and dark mode and custom schemes apply without any setup.
+///
+/// To change the graph's look, either add a [GraphThemeData] to the app theme:
 ///
 /// ```dart
-/// GraphTheme(
-///   data: GraphThemeData(
-///     edgeColor: scheme.onSurfaceVariant,
-///     backEdgeColor: scheme.tertiary,
-///     labelTextColor: scheme.onSurface,
-///     labelBackgroundColor: scheme.surfaceContainerHigh,
-///     labelBorderColor: scheme.outlineVariant,
+/// MaterialApp(
+///   theme: ThemeData(
+///     colorScheme: scheme,
+///     extensions: [GraphThemeData.fromColorScheme(scheme).copyWith(backEdgeColor: scheme.tertiary)],
 ///   ),
-///   child: GraphViewer(...),
 /// )
 /// ```
+///
+/// or wrap one part of the tree in a [GraphTheme].
 @immutable
-final class GraphThemeData {
-  /// Creates theme data; every color defaults to the light palette.
+final class GraphThemeData extends ThemeExtension<GraphThemeData> {
+  /// Creates theme data; every color defaults to a neutral light palette.
   const GraphThemeData({
     this.edgeColor = defaultEdgeColor,
     this.backEdgeColor = defaultBackEdgeColor,
     this.labelTextColor = defaultEdgeColor,
     this.labelBackgroundColor = const Color(0xE6FFFFFF),
     this.labelBorderColor = const Color(0x4D000000),
+    this.labelTextStyle,
     this.debugGraphBoundsColor = const Color(0xFFFF0000),
     this.debugViewportColor = const Color(0xFF0000FF),
   });
 
-  /// A palette for dark backgrounds.
+  /// A neutral palette for dark backgrounds.
   const GraphThemeData.dark({
     this.edgeColor = const Color(0xFFE6E1E5),
     this.backEdgeColor = const Color(0xFFFF8A80),
     this.labelTextColor = const Color(0xFFE6E1E5),
     this.labelBackgroundColor = const Color(0xE6202124),
     this.labelBorderColor = const Color(0x4DFFFFFF),
+    this.labelTextStyle,
     this.debugGraphBoundsColor = const Color(0xFFFF5252),
     this.debugViewportColor = const Color(0xFF448AFF),
   });
 
-  /// Edge color of the light palette and of `EdgeStyle`.
+  /// The graph look derived from [scheme]: edges in `outline`, back edges and self loops in
+  /// `error`, labels in `onSurface` on `surfaceContainerHigh` with an `outlineVariant` border, and
+  /// [labelTextStyle] as the label text.
+  factory GraphThemeData.fromColorScheme(ColorScheme scheme, {TextStyle? labelTextStyle}) => GraphThemeData(
+    edgeColor: scheme.outline,
+    backEdgeColor: scheme.error,
+    labelTextColor: scheme.onSurface,
+    labelBackgroundColor: scheme.surfaceContainerHigh,
+    labelBorderColor: scheme.outlineVariant,
+    labelTextStyle: labelTextStyle,
+    debugGraphBoundsColor: scheme.error,
+    debugViewportColor: scheme.primary,
+  );
+
+  /// The graph look derived from [theme]: [GraphThemeData.fromColorScheme] of its color scheme,
+  /// with `textTheme.labelMedium` as the label text.
+  factory GraphThemeData.fromTheme(ThemeData theme) =>
+      GraphThemeData.fromColorScheme(theme.colorScheme, labelTextStyle: theme.textTheme.labelMedium);
+
+  /// Edge color of the neutral light palette and of `EdgeStyle`.
   static const Color defaultEdgeColor = Color(0xFF000000);
 
-  /// Back-edge and self-loop color of the light palette.
+  /// Back-edge and self-loop color of the neutral light palette.
   static const Color defaultBackEdgeColor = Color(0xFFFF6B6B);
 
   /// Color of forward and cross edges.
@@ -53,7 +75,7 @@ final class GraphThemeData {
   /// Color of self loops; back edges use a faded [edgeColor].
   final Color backEdgeColor;
 
-  /// Edge label text.
+  /// Edge label text color.
   final Color labelTextColor;
 
   /// Edge label background.
@@ -62,19 +84,24 @@ final class GraphThemeData {
   /// Edge label border, or `null` for none.
   final Color? labelBorderColor;
 
+  /// Base text style of edge labels (font, size, weight), 12 px when `null`. [labelTextColor] and
+  /// the fields of `EdgeLabelStyle` are applied on top.
+  final TextStyle? labelTextStyle;
+
   /// Graph bounds drawn by `GraphViewerConfig.showDebugBounds`.
   final Color debugGraphBoundsColor;
 
   /// Viewport outline drawn by `GraphViewerConfig.showDebugBounds`.
   final Color debugViewportColor;
 
-  /// Returns a copy with the given fields replaced.
+  @override
   GraphThemeData copyWith({
     Color? edgeColor,
     Color? backEdgeColor,
     Color? labelTextColor,
     Color? labelBackgroundColor,
     Color? labelBorderColor,
+    TextStyle? labelTextStyle,
     Color? debugGraphBoundsColor,
     Color? debugViewportColor,
   }) => GraphThemeData(
@@ -83,9 +110,25 @@ final class GraphThemeData {
     labelTextColor: labelTextColor ?? this.labelTextColor,
     labelBackgroundColor: labelBackgroundColor ?? this.labelBackgroundColor,
     labelBorderColor: labelBorderColor ?? this.labelBorderColor,
+    labelTextStyle: labelTextStyle ?? this.labelTextStyle,
     debugGraphBoundsColor: debugGraphBoundsColor ?? this.debugGraphBoundsColor,
     debugViewportColor: debugViewportColor ?? this.debugViewportColor,
   );
+
+  @override
+  GraphThemeData lerp(GraphThemeData? other, double t) {
+    if (other == null) return this;
+    return GraphThemeData(
+      edgeColor: Color.lerp(edgeColor, other.edgeColor, t)!,
+      backEdgeColor: Color.lerp(backEdgeColor, other.backEdgeColor, t)!,
+      labelTextColor: Color.lerp(labelTextColor, other.labelTextColor, t)!,
+      labelBackgroundColor: Color.lerp(labelBackgroundColor, other.labelBackgroundColor, t)!,
+      labelBorderColor: Color.lerp(labelBorderColor, other.labelBorderColor, t),
+      labelTextStyle: TextStyle.lerp(labelTextStyle, other.labelTextStyle, t),
+      debugGraphBoundsColor: Color.lerp(debugGraphBoundsColor, other.debugGraphBoundsColor, t)!,
+      debugViewportColor: Color.lerp(debugViewportColor, other.debugViewportColor, t)!,
+    );
+  }
 
   @override
   bool operator ==(Object other) =>
@@ -95,6 +138,7 @@ final class GraphThemeData {
       other.labelTextColor == labelTextColor &&
       other.labelBackgroundColor == labelBackgroundColor &&
       other.labelBorderColor == labelBorderColor &&
+      other.labelTextStyle == labelTextStyle &&
       other.debugGraphBoundsColor == debugGraphBoundsColor &&
       other.debugViewportColor == debugViewportColor;
 
@@ -105,12 +149,15 @@ final class GraphThemeData {
     labelTextColor,
     labelBackgroundColor,
     labelBorderColor,
+    labelTextStyle,
     debugGraphBoundsColor,
     debugViewportColor,
   );
 }
 
-/// Provides [GraphThemeData] to the graph widgets below it.
+/// Overrides the [GraphThemeData] for the graph widgets below it.
+///
+/// Optional: without one, graphs follow the app's [Theme] (see [GraphThemeData]).
 class GraphTheme extends InheritedTheme {
   /// Creates a graph theme.
   const GraphTheme({super.key, required this.data, required super.child});
@@ -118,9 +165,14 @@ class GraphTheme extends InheritedTheme {
   /// The theme data.
   final GraphThemeData data;
 
-  /// The closest [GraphThemeData], or the light defaults.
-  static GraphThemeData of(BuildContext context) =>
-      context.dependOnInheritedWidgetOfExactType<GraphTheme>()?.data ?? const GraphThemeData();
+  /// The graph theme for [context]: the closest [GraphTheme], else the [GraphThemeData] extension
+  /// of the ambient [Theme], else [GraphThemeData.fromTheme] of that theme.
+  static GraphThemeData of(BuildContext context) {
+    final local = context.dependOnInheritedWidgetOfExactType<GraphTheme>();
+    if (local != null) return local.data;
+    final theme = Theme.of(context);
+    return theme.extension<GraphThemeData>() ?? GraphThemeData.fromTheme(theme);
+  }
 
   @override
   Widget wrap(BuildContext context, Widget child) => GraphTheme(data: data, child: child);
@@ -137,7 +189,7 @@ final class EdgeLabelStyle {
     this.textColor,
     this.backgroundColor,
     this.borderColor,
-    this.fontSize = 12,
+    this.fontSize,
     this.fontWeight,
     this.padding = const EdgeInsets.all(4),
     this.borderWidth = 1,
@@ -156,8 +208,8 @@ final class EdgeLabelStyle {
   /// Border, [GraphThemeData.labelBorderColor] when `null`.
   final Color? borderColor;
 
-  /// Font size.
-  final double fontSize;
+  /// Font size, the theme's label text size when `null`.
+  final double? fontSize;
 
   /// Font weight, the ambient one when `null`.
   final FontWeight? fontWeight;

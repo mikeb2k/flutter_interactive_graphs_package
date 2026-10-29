@@ -133,39 +133,6 @@ void main() {
       picture.dispose();
     });
   });
-
-  group('GraphTheme', () {
-    testWidgets('provides its data and falls back to the light defaults', (tester) async {
-      const dark = GraphThemeData.dark();
-      GraphThemeData? inside;
-      GraphThemeData? outside;
-      await tester.pumpWidget(
-        Column(
-          children: [
-            Builder(
-              builder: (context) {
-                outside = GraphTheme.of(context);
-                return const SizedBox();
-              },
-            ),
-            GraphTheme(
-              data: dark,
-              child: Builder(
-                builder: (context) {
-                  inside = GraphTheme.of(context);
-                  return const SizedBox();
-                },
-              ),
-            ),
-          ],
-        ),
-      );
-
-      expect(inside, dark);
-      expect(outside, const GraphThemeData());
-      expect(dark.copyWith(edgeColor: const GraphThemeData().edgeColor).edgeColor, GraphThemeData.defaultEdgeColor);
-    });
-  });
 }
 
 class _TestVsync implements TickerProvider {

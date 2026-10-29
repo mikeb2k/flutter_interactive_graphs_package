@@ -24,7 +24,8 @@ paths:
 - State lives in `GraphViewerController` (a `ChangeNotifier`, no `TickerProvider`): it asks for animations, the `GraphViewer` state runs them. Controllers have `dispose()` and the widget never disposes a controller it didn't create.
 - Rebuild as little as possible: pan, zoom and layout animation update a `RenderObject` or a `Listenable` the painter/render object listens to, not the node widgets. A node rebuilds only when its own selection/hover/drag flags change.
 - Gestures: nodes win over the canvas (taps, drags); the canvas only pans/zooms past the slop. Hover is pointer-only: always keep a non-hover path for touch.
-- Everything visual is overridable: colors via `GraphTheme` / parameters, node visuals via `nodeBuilder`, edges via `edgeBuilder` or `edgeStyle`, arrows via `ArrowPainter`.
+- Theme first: default colors and the label text style come from `GraphTheme.of(context)`, which follows the app's Material theme (a `GraphTheme` widget, else the `GraphThemeData` theme extension, else `GraphThemeData.fromTheme`). Never read `Theme.of` outside `lib/src/theme/`; add a field to `GraphThemeData` (with its `fromColorScheme` role, `copyWith`, `lerp`, `==`) instead.
+- Everything visual is overridable: colors via `GraphTheme` / the theme extension / parameters, node visuals via `nodeBuilder`, edges via `edgeBuilder` or `edgeStyle`, arrows via `ArrowPainter`.
 - Accessibility: node content owns its semantics; the viewer adds none that would hide it. Interactive defaults keep `kMinInteractiveDimension` hit targets where the package draws its own controls.
 - Use the `add-edge-shape` skill for a new edge shape.
 

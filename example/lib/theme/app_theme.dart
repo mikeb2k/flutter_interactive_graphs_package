@@ -1,4 +1,3 @@
-import 'package:interactive_graphs/interactive_graphs.dart';
 import 'package:material_ui/material_ui.dart';
 
 /// Light and dark Material themes of the example, a neutral charcoal palette (Kuiver's sample
@@ -180,32 +179,6 @@ class NodePalette extends ThemeExtension<NodePalette> {
       onGreen: Color.lerp(onGreen, other.onGreen, t)!,
       blue: Color.lerp(blue, other.blue, t)!,
       onBlue: Color.lerp(onBlue, other.onBlue, t)!,
-    );
-  }
-}
-
-/// Maps the Material color scheme onto the graph theme once, for every viewer below.
-class AppGraphTheme extends StatelessWidget {
-  /// Creates the mapping.
-  const AppGraphTheme({super.key, required this.child});
-
-  /// The app.
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return GraphTheme(
-      data: GraphThemeData(
-        edgeColor: scheme.outline,
-        backEdgeColor: scheme.error,
-        labelTextColor: scheme.onSurface,
-        labelBackgroundColor: scheme.surface.withValues(alpha: 0.9),
-        labelBorderColor: scheme.outline.withValues(alpha: 0.3),
-        debugGraphBoundsColor: scheme.error,
-        debugViewportColor: scheme.primary,
-      ),
-      child: child,
     );
   }
 }

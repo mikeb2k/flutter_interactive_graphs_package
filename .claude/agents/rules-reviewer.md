@@ -15,7 +15,7 @@ The caller names the changed paths or a base ref. If not given, review `git diff
 
 Report each hit as `file:line — rule — what to change`.
 
-1. **Imports (package)**: in `lib/**`, any `package:flutter/material.dart`, `cupertino.dart`, `material_ui` or `cupertino_ui` → widgets-level libraries only. In `lib/src/model/**` and `lib/src/layout/**`, any `widgets.dart`, `rendering.dart`, `BuildContext` or `ChangeNotifier` → keep them pure.
+1. **Imports (package)**: in `lib/**`, any `package:flutter/material.dart` or `cupertino.dart`; `material_ui` / `cupertino_ui` outside `lib/src/theme/`; `Theme.of(` outside `lib/src/theme/` → `GraphTheme.of(context)`. In `lib/src/model/**` and `lib/src/layout/**`, any `widgets.dart`, `rendering.dart`, `BuildContext` or `ChangeNotifier` → keep them pure.
 2. **Imports (example)**: `package:flutter/material.dart` / `cupertino.dart` → `package:material_ui/material_ui.dart` / `cupertino_ui`. Any `package:interactive_graphs/src/` → the barrel.
 3. **Relative imports** anywhere except `part` / `part of` → `package:` imports.
 4. **Globals**: top-level `final`, `const`, `var` or function declarations other than `main()` (and Riverpod providers in `example/`) → move into a class or extension. Private `static` members outside static-only classes → instance members.

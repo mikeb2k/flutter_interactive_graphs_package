@@ -280,15 +280,17 @@ class EdgeLabel extends StatelessWidget {
           text,
           maxLines: style.maxLines,
           overflow: style.overflow,
-          style: TextStyle(
-            color: style.textColor ?? theme.labelTextColor,
-            fontSize: style.fontSize,
-            fontWeight: style.fontWeight,
-          ),
+          style: _textStyle(theme),
         ),
       ),
     );
   }
+
+  TextStyle _textStyle(GraphThemeData theme) => (theme.labelTextStyle ?? const TextStyle(fontSize: 12)).copyWith(
+    color: style.textColor ?? theme.labelTextColor,
+    fontSize: style.fontSize,
+    fontWeight: style.fontWeight,
+  );
 
   Border? _border(GraphThemeData theme) {
     final color = style.borderColor ?? theme.labelBorderColor;

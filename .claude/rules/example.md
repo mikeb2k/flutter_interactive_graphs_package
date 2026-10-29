@@ -11,7 +11,7 @@ paths:
 lib/
   main.dart                 runApp(ProviderScope(child: ExampleApp()))
   app.dart                  MaterialApp (light/dark theme, home: ShowcaseView)
-  theme/                    AppTheme (light/dark ColorScheme), NodePalette ThemeExtension, AppGraphTheme
+  theme/                    AppTheme (light/dark ColorScheme), NodePalette ThemeExtension
   features/<feature>/       showcase, playground, stress_test
   widgets/                  widgets used by more than one feature
   models/                   models used by more than one feature (NodeColorType, NodeData, LayoutAlgorithm)
@@ -32,6 +32,6 @@ Every feature has `views/ widgets/ models/ providers/` (keep empty ones with a `
 ## Text, colors, feedback
 
 - User-facing strings live in one `<Feature>Copy` class per feature (`static const` members); no inline literals in `Text(`, `tooltip:`, `label:`. (The demo is English-only, so there is no l10n.)
-- Colors only from `Theme.of(context).colorScheme`, `textTheme` or the `NodePalette` theme extension (`NodePalette.of(context)`); never `Color(0x…)` or `Colors.` in `lib/` outside `lib/theme/`, which is the one place raw colors are defined (the example's `common_styles`). The graph is themed once, in `AppGraphTheme`.
+- Colors only from `Theme.of(context).colorScheme`, `textTheme` or the `NodePalette` theme extension (`NodePalette.of(context)`); never `Color(0x…)` or `Colors.` in `lib/` outside `lib/theme/`, which is the one place raw colors are defined (the example's `common_styles`). Graphs follow the app theme on their own; to restyle them, add a `GraphThemeData` to the `ThemeData` extensions in `AppTheme`.
 - Feedback through `ScaffoldMessenger` snack bars and Material dialogs.
 - Layout works from 360 px phones to wide desktop windows: panels collapse into bottom sheets or drawers on narrow screens; touch targets at least 48 px.

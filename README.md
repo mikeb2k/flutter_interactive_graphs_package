@@ -15,7 +15,7 @@ graph library by Denis Koljada.
 - Anchors: named attachment points inside nodes
 - A batched edge painter for graphs with hundreds of nodes; large layouts run on a background
   isolate
-- Depends on `flutter/widgets` only: works with Material, Cupertino or no design system
+- Follows your app's Material theme (light, dark, custom color schemes) with no setup
 
 Platforms: Android, iOS, web, macOS, Linux, Windows.
 
@@ -225,25 +225,34 @@ speeds are in `GraphViewerConfig`; `MediaQuery.disableAnimations` turns the anim
 
 ## Theming
 
-The package can't read a Material `ColorScheme`, so map it once:
+Graphs follow the app's Material theme out of the box: edges, back edges, labels and debug
+outlines take their colors from the ambient `ColorScheme`, and labels use `textTheme.labelMedium`.
+Light and dark mode, `ColorScheme.fromSeed` and theme animations all carry over with no setup.
+
+| Graph element              | Theme role                         |
+| -------------------------- | ---------------------------------- |
+| Edges                      | `outline`                          |
+| Back edges, self loops     | `outline` faded / `error`          |
+| Label text                 | `onSurface`, `textTheme.labelMedium` |
+| Label background, border   | `surfaceContainerHigh`, `outlineVariant` |
+
+To restyle every graph of the app, add a `GraphThemeData` to the theme's extensions:
 
 ```dart
 MaterialApp(
-  builder: (context, child) {
-    final scheme = Theme.of(context).colorScheme;
-    return GraphTheme(
-      data: GraphThemeData(
-        edgeColor: scheme.outline,
-        backEdgeColor: scheme.error,
-        labelTextColor: scheme.onSurface,
-        labelBackgroundColor: scheme.surface.withValues(alpha: 0.9),
-        labelBorderColor: scheme.outline.withValues(alpha: 0.3),
-      ),
-      child: child!,
-    );
-  },
+  theme: ThemeData(
+    colorScheme: scheme,
+    extensions: [
+      GraphThemeData.fromColorScheme(scheme).copyWith(backEdgeColor: scheme.tertiary),
+    ],
+  ),
 );
 ```
+
+To restyle one part of the tree, wrap it in a `GraphTheme(data: ..., child: ...)`.
+`GraphTheme.of(context)` resolves in that order: the closest `GraphTheme`, then the theme
+extension, then `GraphThemeData.fromTheme(Theme.of(context))`. Per-edge parameters
+(`StyledEdge(baseColor: ...)`, `EdgeLabelStyle(textColor: ...)`) win over all of them.
 
 ## Node sizes
 
@@ -274,7 +283,7 @@ cd example && flutter run -d chrome
 | `KuiverNodeScope` / `KuiverEdgeScope` receivers    | `NodeDetails` / `EdgeDetails` arguments                       |
 | `StyledEdgeContent`, `EdgeContentWithLabel`, …     | `StyledEdge`, `EdgeLine` with an `EdgeShape`                  |
 | `KuiverAnchor(anchorId, nodeId)`                   | `GraphAnchor(id:)` (the node is implicit)                     |
-| `LocalKuiverColors provides KuiverColors(..)`      | `GraphTheme(data: GraphThemeData(..))`                        |
+| `LocalKuiverColors provides KuiverColors(..)`      | automatic from `ThemeData`; override with a `GraphThemeData` theme extension or `GraphTheme` |
 | `ArrowDrawer`                                      | `ArrowPainter`                                                |
 | `AnimationSpec` in `KuiverViewerConfig`            | `SpringDescription` in `GraphViewerConfig`                    |
 | `rememberSaveableKuiverViewerState`                | not ported: keep the `Graph` in your own state / restoration |

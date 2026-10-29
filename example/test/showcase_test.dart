@@ -205,7 +205,6 @@ void main() {
         ProviderScope(
           child: MaterialApp(
             theme: AppTheme.light,
-            builder: (context, child) => AppGraphTheme(child: child!),
             home: const ShowcaseView(),
           ),
         ),
