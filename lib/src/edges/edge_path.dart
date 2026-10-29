@@ -103,10 +103,10 @@ final class StraightEdgePath extends EdgePath {
   String toString() => 'StraightEdgePath($from -> $to)';
 }
 
-/// A quadratic Bézier edge, used for back edges and fanned-out parallel edges.
-final class CurvedEdgePath extends EdgePath {
-  /// Creates a curved path. Prefer `EdgePathFactory.curved`.
-  const CurvedEdgePath({
+/// A quadratic Bézier edge: [CurvedEdgePath] or [SelfLoopEdgePath].
+sealed class QuadraticEdgePath extends EdgePath {
+  /// Creates a quadratic path.
+  const QuadraticEdgePath({
     required super.from,
     required super.to,
     required this.controlPoint,
@@ -134,42 +134,33 @@ final class CurvedEdgePath extends EdgePath {
 
   @override
   Iterable<Offset> get _extremePoints => [controlPoint];
+}
+
+/// A quadratic Bézier edge, used for back edges and fanned-out parallel edges.
+final class CurvedEdgePath extends QuadraticEdgePath {
+  /// Creates a curved path. Prefer `EdgePathFactory.curved`.
+  const CurvedEdgePath({
+    required super.from,
+    required super.to,
+    required super.controlPoint,
+    required super.pathEndpoint,
+    required super.length,
+  });
 
   @override
   String toString() => 'CurvedEdgePath($from -> $to via $controlPoint)';
 }
 
 /// A loop from a node back to itself, a quadratic Bézier above the node.
-final class SelfLoopEdgePath extends EdgePath {
+final class SelfLoopEdgePath extends QuadraticEdgePath {
   /// Creates a self-loop path. Prefer `EdgePathFactory.selfLoop`.
   const SelfLoopEdgePath({
     required super.from,
     required super.to,
-    required this.controlPoint,
+    required super.controlPoint,
     required super.pathEndpoint,
     required super.length,
   });
-
-  /// Control point of the loop, above the node.
-  final Offset controlPoint;
-
-  @override
-  Offset? get arrowDirection => EdgeGeometry.normalize(to - controlPoint);
-
-  @override
-  Path toPath() => Path()
-    ..moveTo(from.dx, from.dy)
-    ..quadraticBezierTo(controlPoint.dx, controlPoint.dy, pathEndpoint.dx, pathEndpoint.dy);
-
-  @override
-  EdgeLabelPosition _labelAt(double t) => EdgeGeometry.quadraticLabel(from, controlPoint, pathEndpoint, t);
-
-  @override
-  double _lineDistanceTo(Offset point) =>
-      _sampledDistance(point, (t) => EdgeGeometry.quadraticAt(from, controlPoint, pathEndpoint, t));
-
-  @override
-  Iterable<Offset> get _extremePoints => [controlPoint];
 
   @override
   String toString() => 'SelfLoopEdgePath($from -> $to via $controlPoint)';
