@@ -14,6 +14,9 @@ final class GraphNode {
   /// fixed box that its widget is laid out in.
   const GraphNode(this.id, {this.size, this.position = Offset.zero});
 
+  /// Size assumed for a node that has neither a fixed nor a measured size, in logical pixels.
+  static const double defaultSize = 60;
+
   /// Unique identifier within a graph.
   final String id;
 
