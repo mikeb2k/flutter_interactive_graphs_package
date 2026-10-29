@@ -288,16 +288,7 @@ class _GraphViewerState extends State<GraphViewer> with TickerProviderStateMixin
     final toNode = graph.nodes[edge.toId];
     if (fromNode == null || toNode == null) return null;
     final bend = _bends[edge.id];
-    final (from, to) = EdgeEndpoints.resolve(
-      edge: edge,
-      bend: bend,
-      fromCenter: _nodeCenter(edge.fromId),
-      fromSize: fromNode.size,
-      toCenter: _nodeCenter(edge.toId),
-      toSize: toNode.size,
-      fromAnchorOffset: _anchorOffset(edge.fromId, edge.fromAnchor),
-      toAnchorOffset: _anchorOffset(edge.toId, edge.toAnchor),
-    );
+    final (from, to) = _endpoints(edge, fromNode.size, toNode.size, bend);
     final interaction = _controller.interaction;
     return EdgeDetails(
       edge: edge,
@@ -306,30 +297,25 @@ class _GraphViewerState extends State<GraphViewer> with TickerProviderStateMixin
       bend: bend?.amount,
       isSelected: interaction.isEdgeSelected(edge.id),
       isHovered: interaction.hoveredEdgeId == edge.id,
+      unbentEndpoints: _unbentEndpoints(edge, fromNode.size, toNode.size, bend),
     );
   }
 
-  /// [details] with endpoints recomputed without the parallel-edge bend, for shapes that don't fan
-  /// out.
-  EdgeDetails _unbent(EdgeDetails details) {
-    final edge = details.edge;
-    final graph = _controller.layoutedGraph;
-    final (from, to) = EdgeEndpoints.resolve(
-      edge: edge,
-      fromCenter: _nodeCenter(edge.fromId),
-      fromSize: graph.nodes[edge.fromId]?.size,
-      toCenter: _nodeCenter(edge.toId),
-      toSize: graph.nodes[edge.toId]?.size,
-      fromAnchorOffset: _anchorOffset(edge.fromId, edge.fromAnchor),
-      toAnchorOffset: _anchorOffset(edge.toId, edge.toAnchor),
-    );
-    return EdgeDetails(
-      edge: edge,
-      from: from,
-      to: to,
-      isSelected: details.isSelected,
-      isHovered: details.isHovered,
-    );
+  (Offset, Offset) _endpoints(GraphEdge edge, Size? fromSize, Size? toSize, EdgeBend? bend) => EdgeEndpoints.resolve(
+    edge: edge,
+    bend: bend,
+    fromCenter: _nodeCenter(edge.fromId),
+    fromSize: fromSize,
+    toCenter: _nodeCenter(edge.toId),
+    toSize: toSize,
+    fromAnchorOffset: _anchorOffset(edge.fromId, edge.fromAnchor),
+    toAnchorOffset: _anchorOffset(edge.toId, edge.toAnchor),
+  );
+
+  /// The endpoints without the parallel-edge bend, for shapes that don't fan out.
+  (Offset, Offset)? _unbentEndpoints(GraphEdge edge, Size? fromSize, Size? toSize, EdgeBend? bend) {
+    if (bend == null || edge.isSelfLoop) return null;
+    return _endpoints(edge, fromSize, toSize, null);
   }
 
   Offset? _anchorOffset(String nodeId, String? anchorId) {
@@ -544,15 +530,11 @@ class _BatchedEdgePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final hits = state._hitRegistry();
     for (final edge in state._controller.layoutedGraph.edges) {
-      var details = state._edgeDetails(edge);
+      final details = state._edgeDetails(edge);
       if (details == null) continue;
-      var edgeStyle = style(details);
-      if (details.bend != null && !edge.isSelfLoop && !edgeStyle.shape.fansOut) {
-        details = state._unbent(details);
-        edgeStyle = style(details);
-      }
-      final bend = details.bend;
-      final path = edgeStyle.createPath(edge, bend, details.from, details.to);
+      final edgeStyle = style(details);
+      final shown = details.forShape(edgeStyle.shape);
+      final path = edgeStyle.createPath(edge, shown.bend, shown.from, shown.to);
       hits?.report(edge.id, path);
       EdgePainting.paint(canvas, path, edgeStyle);
     }
