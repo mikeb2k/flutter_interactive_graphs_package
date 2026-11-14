@@ -432,6 +432,53 @@ void main() {
     expect(changed, isNot(config));
   });
 
+  test('the viewer config compares by value and copyWith reaches every field', () {
+    const config = GraphViewerConfig();
+    bool always(PointerScrollEvent event) => true;
+    final changed = [
+      config.copyWith(showDebugBounds: true),
+      config.copyWith(fitToContent: false),
+      config.copyWith(contentPadding: 0.5),
+      config.copyWith(minScale: 0.5),
+      config.copyWith(maxScale: 3),
+      config.copyWith(zoomStep: 2),
+      config.copyWith(scrollPanSpeed: 2),
+      config.copyWith(scrollZoomSpeed: 0.01),
+      config.copyWith(scrollZoomCondition: always),
+      config.copyWith(selectionMode: SelectionMode.single),
+      config.copyWith(nodeDragEnabled: true),
+      config.copyWith(hoverEnabled: true),
+      config.copyWith(edgeSelectionMode: SelectionMode.multiple),
+      config.copyWith(edgeHoverEnabled: true),
+      config.copyWith(edgeHitTolerance: 20),
+      config.copyWith(relayoutPolicy: RelayoutPolicy.relayoutAll),
+      config.copyWith(transformSpring: const SpringDescription(mass: 2, stiffness: 50, damping: 5)),
+      config.copyWith(layoutSpring: const SpringDescription(mass: 2, stiffness: 50, damping: 5)),
+      config.copyWith(animateLayout: false),
+      config.copyWith(animateInitialPlacement: true),
+      config.copyWith(enterDuration: const Duration(seconds: 1)),
+    ];
+
+    expect(config.copyWith(), config);
+    expect(config.copyWith().hashCode, config.hashCode);
+    for (final other in changed) {
+      expect(other, isNot(config));
+    }
+    expect(changed.toSet(), hasLength(changed.length));
+  });
+
+  test('interaction callbacks compare by their handlers', () {
+    void onTap(GraphNode node) {}
+    void onCanvasTap() {}
+    final callbacks = GraphInteractionCallbacks(onNodeTap: onTap, onCanvasTap: onCanvasTap);
+
+    expect(callbacks, GraphInteractionCallbacks(onNodeTap: onTap, onCanvasTap: onCanvasTap));
+    expect(callbacks.hashCode, GraphInteractionCallbacks(onNodeTap: onTap, onCanvasTap: onCanvasTap).hashCode);
+    expect(callbacks, isNot(GraphInteractionCallbacks(onNodeTap: onTap)));
+    expect(callbacks.handlesNodeTap, isTrue);
+    expect(const GraphInteractionCallbacks().handlesNodeTap, isFalse);
+  });
+
   testWidgets('animateLayout: false places nodes at once', (tester) async {
     final controller = await pumpViewer(tester, config: const GraphViewerConfig(animateLayout: false));
     final before = tester.getCenter(find.byKey(const ValueKey('node-B')));

@@ -68,6 +68,54 @@ void main() {
     expect(resolved, local);
   });
 
+  test('theme data compares by value and copyWith reaches every field', () {
+    const data = GraphThemeData();
+    const other = Color(0xFF123456);
+    final changed = [
+      data.copyWith(edgeColor: other),
+      data.copyWith(backEdgeColor: other),
+      data.copyWith(labelTextColor: other),
+      data.copyWith(labelBackgroundColor: other),
+      data.copyWith(labelBorderColor: other),
+      data.copyWith(labelTextStyle: const TextStyle(fontSize: 30)),
+      data.copyWith(debugGraphBoundsColor: other),
+      data.copyWith(debugViewportColor: other),
+    ];
+
+    expect(data.copyWith(), data);
+    expect(data.copyWith().hashCode, data.hashCode);
+    expect(const GraphThemeData.dark(), isNot(data));
+    for (final variant in changed) {
+      expect(variant, isNot(data));
+    }
+    expect(changed.toSet(), hasLength(changed.length));
+  });
+
+  test('a label style compares by value and copyWith reaches every field', () {
+    const style = EdgeLabelStyle();
+    const other = Color(0xFF123456);
+    final changed = [
+      style.copyWith(textColor: other),
+      style.copyWith(backgroundColor: other),
+      style.copyWith(borderColor: other),
+      style.copyWith(fontSize: 30),
+      style.copyWith(fontWeight: FontWeight.w900),
+      style.copyWith(padding: const EdgeInsets.all(20)),
+      style.copyWith(borderWidth: 9),
+      style.copyWith(cornerRadius: 9),
+      style.copyWith(maxLines: 3),
+      style.copyWith(overflow: TextOverflow.fade),
+      style.copyWith(rotateWithEdge: true),
+    ];
+
+    expect(style.copyWith(), style);
+    expect(style.copyWith().hashCode, style.hashCode);
+    for (final variant in changed) {
+      expect(variant, isNot(style));
+    }
+    expect(changed.toSet(), hasLength(changed.length));
+  });
+
   test('lerps between two themes', () {
     final from = GraphThemeData.fromTheme(light);
     final to = GraphThemeData.fromTheme(dark);

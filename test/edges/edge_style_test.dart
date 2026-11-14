@@ -50,6 +50,31 @@ void main() {
   group('dash', () {
     double length(Path path) => path.computeMetrics().fold(0, (sum, metric) => sum + metric.length);
 
+    test('a style compares by value and copyWith reaches every field', () {
+      const style = EdgeStyle();
+      void dot(Canvas canvas, Offset tip, Offset direction, Color color, double size) {}
+      final changed = [
+        style.copyWith(color: const Color(0xFF00FF00)),
+        style.copyWith(strokeWidth: 9),
+        style.copyWith(showArrow: !style.showArrow),
+        style.copyWith(dashed: !style.dashed),
+        style.copyWith(dashLength: 99),
+        style.copyWith(gapLength: 99),
+        style.copyWith(shape: EdgeShape.orthogonal),
+        style.copyWith(loopRadius: 99),
+        style.copyWith(curveFactor: 0.99),
+        style.copyWith(arrowSize: 99),
+        style.copyWith(arrowPainter: dot),
+      ];
+
+      expect(style.copyWith(), style);
+      expect(style.copyWith().hashCode, style.hashCode);
+      for (final other in changed) {
+        expect(other, isNot(style));
+      }
+      expect(changed.toSet(), hasLength(changed.length));
+    });
+
     test('cuts a line into dashes and gaps', () {
       final line = Path()
         ..moveTo(0, 0)

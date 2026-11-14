@@ -11,6 +11,30 @@ void main() {
       ..edges([('A', 'B'), ('B', 'C'), ('C', 'A')]),
   );
 
+  test('layout configs compare by value', () {
+    Graph keep(Graph graph, LayoutConfig config) => graph;
+    Graph other(Graph graph, LayoutConfig config) => graph;
+    const canvas = Size(400, 300);
+
+    const hierarchical = LayoutConfig.hierarchical();
+    expect(hierarchical, const LayoutConfig.hierarchical());
+    expect(hierarchical.hashCode, const LayoutConfig.hierarchical().hashCode);
+    expect(hierarchical, isNot(const LayoutConfig.hierarchical(direction: LayoutDirection.vertical)));
+    expect(hierarchical.withCanvas(canvas), isNot(hierarchical));
+
+    const forceDirected = LayoutConfig.forceDirected();
+    expect(forceDirected, const LayoutConfig.forceDirected());
+    expect(forceDirected.hashCode, const LayoutConfig.forceDirected().hashCode);
+    expect(forceDirected, isNot(const LayoutConfig.forceDirected(iterations: 10)));
+    expect(forceDirected, isNot(hierarchical));
+
+    final custom = LayoutConfig.custom(keep);
+    expect(custom, LayoutConfig.custom(keep));
+    expect(custom.hashCode, LayoutConfig.custom(keep).hashCode);
+    expect(custom, isNot(LayoutConfig.custom(other)));
+    expect(custom.withCanvas(canvas), isNot(custom));
+  });
+
   test('the provider receives the graph and the config with the canvas', () {
     Graph? received;
     LayoutConfig? receivedConfig;
