@@ -340,6 +340,46 @@ void main() {
     expect(builds['B'], before['B']);
   });
 
+  testWidgets('moving one node leaves the widgets of the other nodes alone', (tester) async {
+    final controller = await pumpViewer(tester);
+    Widget slotOf(String id) => tester.widget(find.byKey(ValueKey(id)));
+    final a = slotOf('A');
+    final b = slotOf('B');
+
+    controller.moveNodeBy('A', const Offset(0, 30));
+    await tester.pumpAndSettle();
+
+    expect(slotOf('A'), isNot(same(a)));
+    expect(slotOf('B'), same(b));
+  });
+
+  testWidgets('rebuildNodesOnLayout: false builds a node once and again only when its state changes', (tester) async {
+    final builds = <String, int>{};
+    final controller = await pumpViewer(
+      tester,
+      config: const GraphViewerConfig(rebuildNodesOnLayout: false, selectionMode: SelectionMode.single),
+      nodeBuilder: (context, details) {
+        builds.update(details.node.id, (n) => n + 1, ifAbsent: () => 1);
+        return box(details);
+      },
+    );
+    expect(builds, {'A': 1, 'B': 1});
+
+    controller.updateGraph(
+      controller.graph.rebuild(
+        (g) => g
+          ..node('C')
+          ..edge('B', 'C'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(builds, {'A': 1, 'B': 1, 'C': 1});
+
+    controller.interaction.select('A');
+    await tester.pump();
+    expect(builds, {'A': 2, 'B': 1, 'C': 1});
+  });
+
   testWidgets('panning and zooming repaint nothing', (tester) async {
     var arrows = 0;
     void countingArrow(Canvas canvas, Offset tip, Offset direction, Color color, double size) => arrows++;
@@ -457,6 +497,7 @@ void main() {
       config.copyWith(animateLayout: false),
       config.copyWith(animateInitialPlacement: true),
       config.copyWith(enterDuration: const Duration(seconds: 1)),
+      config.copyWith(rebuildNodesOnLayout: false),
     ];
 
     expect(config.copyWith(), config);

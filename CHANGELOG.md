@@ -18,6 +18,11 @@
   background layout runs at a time: requests made meanwhile are laid out once, after it. In a
   `testWidgets` test a background layout only finishes inside `tester.runAsync`; pass a higher
   threshold to keep such graphs on the UI isolate.
+* `GraphViewerConfig.rebuildNodesOnLayout` (default `true`): turn it off when the `nodeBuilder`
+  reads neither the node's position nor its size, and a node is built once instead of after every
+  layout pass.
+* Performance: a change to one node (`moveNode`, a new neighbor) no longer rebuilds the hosts of
+  all the other nodes.
 
 ## 0.1.0
 

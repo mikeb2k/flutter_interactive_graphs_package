@@ -263,6 +263,18 @@ Nodes without a `size` are laid out with unbounded constraints and measured; the
 again whenever a measured size changes. Give such widgets an intrinsic size (no top-level
 `Expanded` or infinite widths). Nodes with a `size` get exactly that box.
 
+## Large graphs
+
+- Leave out `edgeBuilder`: the viewer then paints every edge from one canvas (style them with
+  `edgeStyle`).
+- Set `GraphViewerConfig(rebuildNodesOnLayout: false)` when your `nodeBuilder` doesn't read the
+  node's position or size. A node is then built once, and again only when its selection, hover or
+  drag state changes, instead of after every layout pass.
+- Layouts of 200 nodes or more run on a background isolate (`backgroundLayoutThreshold` on the
+  controller; not for custom layouts, and not on the web). In a `testWidgets` test such a layout
+  only finishes inside `tester.runAsync`.
+- Pan and zoom move the picture without repainting it, at any graph size.
+
 ## Example
 
 `example/` ports Kuiver's sample: a guided **Showcase** of an order-fulfilment flow, an editable

@@ -38,6 +38,7 @@ final class GraphViewerConfig {
     this.animateLayout = true,
     this.animateInitialPlacement = false,
     this.enterDuration = Duration.zero,
+    this.rebuildNodesOnLayout = true,
   }) : assert(minScale > 0 && minScale <= maxScale),
        assert(contentPadding > 0 && contentPadding <= 1),
        assert(zoomStep > 1);
@@ -123,6 +124,14 @@ final class GraphViewerConfig {
   /// Fade-in of the graph once it is laid out and fitted; [Duration.zero] shows it at once.
   final Duration enterDuration;
 
+  /// Whether a node's widget is built again when a layout pass moves or resizes the node, so that
+  /// `NodeDetails.node` always carries its current position and size.
+  ///
+  /// Turn it off when the `nodeBuilder` reads neither: a node is then built once, and again only
+  /// when its selection, hover or drag state changes. That saves one build of every node per
+  /// layout pass, including the one right after the first frame.
+  final bool rebuildNodesOnLayout;
+
   /// Returns a copy with the given fields replaced.
   GraphViewerConfig copyWith({
     bool? showDebugBounds,
@@ -146,6 +155,7 @@ final class GraphViewerConfig {
     bool? animateLayout,
     bool? animateInitialPlacement,
     Duration? enterDuration,
+    bool? rebuildNodesOnLayout,
   }) => GraphViewerConfig(
     showDebugBounds: showDebugBounds ?? this.showDebugBounds,
     fitToContent: fitToContent ?? this.fitToContent,
@@ -168,6 +178,7 @@ final class GraphViewerConfig {
     animateLayout: animateLayout ?? this.animateLayout,
     animateInitialPlacement: animateInitialPlacement ?? this.animateInitialPlacement,
     enterDuration: enterDuration ?? this.enterDuration,
+    rebuildNodesOnLayout: rebuildNodesOnLayout ?? this.rebuildNodesOnLayout,
   );
 
   @override
@@ -193,7 +204,8 @@ final class GraphViewerConfig {
       other.layoutSpring == layoutSpring &&
       other.animateLayout == animateLayout &&
       other.animateInitialPlacement == animateInitialPlacement &&
-      other.enterDuration == enterDuration;
+      other.enterDuration == enterDuration &&
+      other.rebuildNodesOnLayout == rebuildNodesOnLayout;
 
   @override
   int get hashCode => Object.hashAll([
@@ -218,6 +230,7 @@ final class GraphViewerConfig {
     animateLayout,
     animateInitialPlacement,
     enterDuration,
+    rebuildNodesOnLayout,
   ]);
 }
 

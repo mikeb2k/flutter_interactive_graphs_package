@@ -261,12 +261,24 @@ class _NodeHostState extends State<NodeHost> {
   /// it reads rebuild it even while the cached widget is reused.
   Widget _built(NodeDetails details) {
     final builder = widget.builder;
-    if (_content case final content? when details == _contentDetails && identical(builder, _contentBuilder)) {
+    if (_content case final content? when _sameForBuilder(details) && identical(builder, _contentBuilder)) {
       return content;
     }
     _contentDetails = details;
     _contentBuilder = builder;
     return _content = Builder(builder: (context) => builder(context, details));
+  }
+
+  /// Whether [details] would give the builder what the cached content was built from. Without
+  /// `rebuildNodesOnLayout` the node's position and size don't count.
+  bool _sameForBuilder(NodeDetails details) {
+    final built = _contentDetails;
+    if (built == null) return false;
+    if (widget.config.rebuildNodesOnLayout) return details == built;
+    return details.node.id == built.node.id &&
+        details.isSelected == built.isSelected &&
+        details.isHovered == built.isHovered &&
+        details.isDragging == built.isDragging;
   }
 
   Widget _sized(Widget content) {

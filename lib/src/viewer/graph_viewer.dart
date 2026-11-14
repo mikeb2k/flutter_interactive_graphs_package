@@ -9,6 +9,7 @@ import 'package:interactive_graphs/src/edges/edge_style.dart';
 import 'package:interactive_graphs/src/model/graph.dart';
 import 'package:interactive_graphs/src/model/graph_bounds.dart';
 import 'package:interactive_graphs/src/model/graph_edge.dart';
+import 'package:interactive_graphs/src/model/graph_node.dart';
 import 'package:interactive_graphs/src/theme/graph_theme.dart';
 import 'package:interactive_graphs/src/viewer/edge_widgets.dart';
 import 'package:interactive_graphs/src/viewer/graph_interaction.dart';
@@ -81,7 +82,8 @@ class _GraphViewerState extends State<GraphViewer> with TickerProviderStateMixin
   Graph? _shownGraph;
   Map<String, Offset> _targets = const {};
   Map<String, EdgeBend> _bends = const {};
-  // What each edge widget was last built from; reused while none of it changes
+  // What each node and edge widget was last built from; reused while none of it changes
+  final Map<String, _BuiltNode> _builtNodeCache = {};
   final Map<String, _BuiltEdge> _builtEdgeCache = {};
   // Fires when the selected or hovered edge changes, not on node selection or hover
   final ValueNotifier<int> _edgeState = ValueNotifier(0);
@@ -217,23 +219,7 @@ class _GraphViewerState extends State<GraphViewer> with TickerProviderStateMixin
             centerOf: _nodeCenter,
             positions: _positions,
             onMeasured: _controller.reportMeasuredSizes,
-            children: [
-              for (final node in graph.nodes.values)
-                NodeSlot(
-                  key: ValueKey(node.id),
-                  nodeId: node.id,
-                  fixedSize: _controller.graph.nodes[node.id]?.size,
-                  child: NodeHost(
-                    node: node,
-                    fixedSize: _controller.graph.nodes[node.id]?.size,
-                    controller: _controller,
-                    anchors: _anchors,
-                    config: widget.config,
-                    callbacks: widget.callbacks,
-                    builder: widget.nodeBuilder,
-                  ),
-                ),
-            ],
+            children: [for (final node in graph.nodes.values) _builtNode(node)],
           ),
         ),
       ],
@@ -263,6 +249,46 @@ class _GraphViewerState extends State<GraphViewer> with TickerProviderStateMixin
       children.add(_builtEdge(details, builder, registry));
     }
     return Stack(fit: StackFit.expand, clipBehavior: Clip.none, children: children);
+  }
+
+  /// The slot and host of a node. An unchanged node keeps its widget, so a change to one node
+  /// (a move, a new neighbor) does not rebuild the hosts of all the others.
+  Widget _builtNode(GraphNode node) {
+    final fixedSize = _controller.graph.nodes[node.id]?.size;
+    final cached = _builtNodeCache[node.id];
+    if (cached != null &&
+        cached.node == node &&
+        cached.fixedSize == fixedSize &&
+        identical(cached.controller, _controller) &&
+        cached.config == widget.config &&
+        cached.callbacks == widget.callbacks &&
+        identical(cached.builder, widget.nodeBuilder)) {
+      return cached.widget;
+    }
+    final slot = NodeSlot(
+      key: ValueKey(node.id),
+      nodeId: node.id,
+      fixedSize: fixedSize,
+      child: NodeHost(
+        node: node,
+        fixedSize: fixedSize,
+        controller: _controller,
+        anchors: _anchors,
+        config: widget.config,
+        callbacks: widget.callbacks,
+        builder: widget.nodeBuilder,
+      ),
+    );
+    _builtNodeCache[node.id] = (
+      node: node,
+      fixedSize: fixedSize,
+      controller: _controller,
+      config: widget.config,
+      callbacks: widget.callbacks,
+      builder: widget.nodeBuilder,
+      widget: slot,
+    );
+    return slot;
   }
 
   /// The widget of an edge. An unchanged edge keeps its widget, so only the edges that moved or
@@ -394,6 +420,7 @@ class _GraphViewerState extends State<GraphViewer> with TickerProviderStateMixin
       _bends = graph.hasParallelEdges ? ParallelEdges.bends(graph.edges) : const {};
       final nodeIds = graph.nodes.keys.toSet();
       _anchors.retain(nodeIds);
+      _builtNodeCache.removeWhere((id, _) => !nodeIds.contains(id));
       final edgeIds = {for (final edge in graph.edges) edge.id};
       _hits.retain(edgeIds);
       _builtEdgeCache.removeWhere((id, _) => !edgeIds.contains(id));
@@ -560,6 +587,17 @@ class _GraphViewerState extends State<GraphViewer> with TickerProviderStateMixin
     if (widget.config.edgeHoverEnabled) _controller.interaction.hoveredEdgeId = null;
   }
 }
+
+/// A node widget and what it was built from.
+typedef _BuiltNode = ({
+  GraphNode node,
+  Size? fixedSize,
+  GraphViewerController controller,
+  GraphViewerConfig config,
+  GraphInteractionCallbacks callbacks,
+  GraphNodeBuilder builder,
+  Widget widget,
+});
 
 /// An edge widget and what it was built from.
 typedef _BuiltEdge = ({EdgeDetails details, GraphEdgeBuilder builder, EdgeHitRegistry? registry, Widget widget});
