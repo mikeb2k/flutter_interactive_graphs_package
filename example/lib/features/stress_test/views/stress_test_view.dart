@@ -6,6 +6,7 @@ import 'package:interactive_graphs_example/features/stress_test/widgets/stress_t
 import 'package:interactive_graphs_example/features/stress_test/widgets/stress_test_graph_viewer.dart';
 import 'package:interactive_graphs_example/features/stress_test/widgets/stress_test_loading_overlay.dart';
 import 'package:interactive_graphs_example/features/stress_test/widgets/stress_test_zoom_toolbar.dart';
+import 'package:interactive_graphs_example/widgets/size_reporter.dart';
 import 'package:material_ui/material_ui.dart';
 
 /// Stress test: large random graphs with a node count picker, layout switch, regeneration, debug
@@ -23,7 +24,6 @@ class StressTestView extends ConsumerStatefulWidget {
 }
 
 class _StressTestViewState extends ConsumerState<StressTestView> {
-  final GlobalKey _controlsKey = GlobalKey();
   late GraphViewerController _controller;
 
   @override
@@ -43,7 +43,6 @@ class _StressTestViewState extends ConsumerState<StressTestView> {
     final state = ref.watch(stressTestProvider);
     final notifier = ref.read(stressTestProvider.notifier);
     ref.listen(stressTestProvider, _onStateChanged);
-    WidgetsBinding.instance.addPostFrameCallback(_reserveControlsHeight);
     final graph = state.stressGraph.graph;
     return Scaffold(
       body: SafeArea(
@@ -62,25 +61,22 @@ class _StressTestViewState extends ConsumerState<StressTestView> {
               top: 0,
               left: 0,
               right: 0,
-              child: NotificationListener<SizeChangedLayoutNotification>(
-                onNotification: _onControlsResized,
-                child: SizeChangedLayoutNotifier(
-                  child: StressTestControlsCard(
-                    key: _controlsKey,
-                    controller: _controller,
-                    selectedPreset: state.preset,
-                    onPresetSelected: notifier.selectPreset,
-                    selectedLayoutAlgorithm: state.layoutAlgorithm,
-                    onLayoutAlgorithmSelected: notifier.selectLayoutAlgorithm,
-                    nodeCount: graph.nodes.length,
-                    edgeCount: graph.edges.length,
-                    showDebugBounds: state.showDebugBounds,
-                    onToggleDebugBounds: notifier.toggleDebugBounds,
-                    batchedEdges: state.batchedEdges,
-                    onToggleBatchedEdges: notifier.toggleBatchedEdges,
-                    onRegenerate: notifier.regenerate,
-                    onNavigateBack: Navigator.of(context).pop,
-                  ),
+              child: SizeReporter(
+                onSizeChanged: _onControlsSize,
+                child: StressTestControlsCard(
+                  controller: _controller,
+                  selectedPreset: state.preset,
+                  onPresetSelected: notifier.selectPreset,
+                  selectedLayoutAlgorithm: state.layoutAlgorithm,
+                  onLayoutAlgorithmSelected: notifier.selectLayoutAlgorithm,
+                  nodeCount: graph.nodes.length,
+                  edgeCount: graph.edges.length,
+                  showDebugBounds: state.showDebugBounds,
+                  onToggleDebugBounds: notifier.toggleDebugBounds,
+                  batchedEdges: state.batchedEdges,
+                  onToggleBatchedEdges: notifier.toggleBatchedEdges,
+                  onRegenerate: notifier.regenerate,
+                  onNavigateBack: Navigator.of(context).pop,
                 ),
               ),
             ),
@@ -117,15 +113,6 @@ class _StressTestViewState extends ConsumerState<StressTestView> {
     }
   }
 
-  bool _onControlsResized(SizeChangedLayoutNotification notification) {
-    WidgetsBinding.instance.addPostFrameCallback(_reserveControlsHeight);
-    return true;
-  }
-
   /// Reserves the height of the controls card so that centering keeps the graph clear of it.
-  void _reserveControlsHeight(Duration _) {
-    if (!mounted) return;
-    final height = _controlsKey.currentContext?.size?.height;
-    if (height != null) _controller.updateContentInsets(EdgeInsets.only(top: height));
-  }
+  void _onControlsSize(Size size) => _controller.updateContentInsets(EdgeInsets.only(top: size.height));
 }

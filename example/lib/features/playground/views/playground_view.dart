@@ -16,7 +16,7 @@ import 'package:interactive_graphs_example/features/playground/widgets/playgroun
 import 'package:interactive_graphs_example/features/playground/widgets/playground_node.dart';
 import 'package:interactive_graphs_example/features/playground/widgets/playground_toolbar.dart';
 import 'package:interactive_graphs_example/features/playground/widgets/playground_zoom_column.dart';
-import 'package:interactive_graphs_example/features/playground/widgets/size_reporter.dart';
+import 'package:interactive_graphs_example/widgets/size_reporter.dart';
 import 'package:material_ui/material_ui.dart';
 
 /// The editable graph: tap two nodes to connect them, long-press a node to remove it, drag nodes,
