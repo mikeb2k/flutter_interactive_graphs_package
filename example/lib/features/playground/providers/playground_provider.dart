@@ -22,10 +22,10 @@ class PlaygroundNotifier extends Notifier<PlaygroundState> {
 
   /// The four-node demo graph the screen starts with.
   static const Map<String, NodeData> initialNodeData = {
-    '1': NodeData(label: 'Start', colorType: NodeColorType.pink),
-    '2': NodeData(label: 'Process', colorType: NodeColorType.yellow),
-    '3': NodeData(label: 'Review', colorType: NodeColorType.green),
-    '4': NodeData(label: 'End', colorType: NodeColorType.blue),
+    '1': NodeData(label: PlaygroundCopy.startNode, colorType: NodeColorType.pink),
+    '2': NodeData(label: PlaygroundCopy.processNode, colorType: NodeColorType.yellow),
+    '3': NodeData(label: PlaygroundCopy.reviewNode, colorType: NodeColorType.green),
+    '4': NodeData(label: PlaygroundCopy.endNode, colorType: NodeColorType.blue),
   };
 
   /// Edges of the demo graph.

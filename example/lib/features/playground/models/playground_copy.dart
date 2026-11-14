@@ -83,6 +83,18 @@ abstract final class PlaygroundCopy {
   /// Default label of a new node.
   static String defaultNodeLabel(String id) => 'Node $id';
 
+  /// First node of the demo graph.
+  static const String startNode = 'Start';
+
+  /// Second node of the demo graph.
+  static const String processNode = 'Process';
+
+  /// Third node of the demo graph.
+  static const String reviewNode = 'Review';
+
+  /// Last node of the demo graph.
+  static const String endNode = 'End';
+
   /// Connect mode banner.
   static String connectFrom(String label) => 'Click another node to connect from "$label"';
 
