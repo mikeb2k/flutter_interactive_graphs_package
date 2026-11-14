@@ -1,5 +1,4 @@
-import 'dart:ui';
-
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:interactive_graphs/interactive_graphs.dart';
 
@@ -64,6 +63,21 @@ void main() {
     expect(fitted.center.dx, closeTo(400, 1));
   });
 
+  test('fitting keeps the graph inside the room the content insets leave', () async {
+    final controller = await laidOut(config: const LayoutConfig.hierarchical(direction: LayoutDirection.vertical))
+      ..updateContentInsets(const EdgeInsets.only(top: 200, bottom: 100))
+      ..centerGraph(animated: false);
+    final bounds = GraphBounds.ofNodes(controller.layoutedGraph.nodes.values);
+    final fitted = Rect.fromPoints(
+      controller.graphToViewport(bounds.topLeft),
+      controller.graphToViewport(bounds.bottomRight),
+    );
+
+    expect(controller.contentInsets, const EdgeInsets.only(top: 200, bottom: 100));
+    expect(fitted.height, closeTo(300 * 0.8, 0.5));
+    expect(fitted.center, offsetMoreOrLessEquals(const Offset(400, 350), epsilon: 1));
+  });
+
   test('fitting centers the node bounds, also when the outer nodes differ in size', () async {
     final uneven = Graph.build(
       (g) => g
@@ -75,6 +89,30 @@ void main() {
     final bounds = GraphBounds.ofNodes(controller.layoutedGraph.nodes.values);
 
     expect(controller.graphToViewport(bounds.center), offsetMoreOrLessEquals(const Offset(400, 300), epsilon: 1));
+  });
+
+  test('centerOn puts a graph point in the middle of the room the content insets leave', () async {
+    final controller = await laidOut()
+      ..updateContentInsets(const EdgeInsets.only(left: 100, top: 200));
+    final point = controller.layoutedGraph.nodes['C']!.position;
+
+    controller.centerOn(point, scale: 1.5, animated: false);
+
+    expect(controller.scale, 1.5);
+    expect(controller.graphToViewport(point), offsetMoreOrLessEquals(const Offset(450, 400)));
+  });
+
+  test('centerOn keeps the zoom unless it gets one, within the zoom limits', () async {
+    final controller = await laidOut()
+      ..updateTransform(scale: 2);
+    final point = controller.layoutedGraph.nodes['A']!.position;
+
+    controller.centerOn(point, animated: false);
+    expect(controller.scale, 2);
+
+    controller.centerOn(point, scale: 1000, animated: false);
+    expect(controller.scale, controller.config.maxScale);
+    expect(controller.graphToViewport(point), offsetMoreOrLessEquals(const Offset(400, 300)));
   });
 
   test('an equal graph is a no-op, a new one is laid out', () async {

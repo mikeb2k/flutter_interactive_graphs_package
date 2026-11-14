@@ -108,7 +108,7 @@ class _StressTestViewState extends ConsumerState<StressTestView> {
     if (previous?.stressGraph != next.stressGraph) {
       final old = _controller;
       setState(() {
-        _controller = _createController(next)..updateContentOffset(old.contentOffset);
+        _controller = _createController(next)..updateContentInsets(old.contentInsets);
       });
       // The viewer lets go of the old controller while rebuilding
       WidgetsBinding.instance.addPostFrameCallback((_) => old.dispose());
@@ -126,6 +126,6 @@ class _StressTestViewState extends ConsumerState<StressTestView> {
   void _reserveControlsHeight(Duration _) {
     if (!mounted) return;
     final height = _controlsKey.currentContext?.size?.height;
-    if (height != null) _controller.updateContentOffset(Offset(0, height));
+    if (height != null) _controller.updateContentInsets(EdgeInsets.only(top: height));
   }
 }

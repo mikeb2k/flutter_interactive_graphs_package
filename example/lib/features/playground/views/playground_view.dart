@@ -293,15 +293,16 @@ class _PlaygroundViewState extends ConsumerState<PlaygroundView> {
   /// Centers the graph in the area between the overlays and the toolbar.
   void _onOverlaySize(Size size) {
     _overlayHeight = size.height;
-    _updateContentOffset();
+    _updateContentInsets();
   }
 
   void _onToolbarSize(Size size) {
     _toolbarHeight = size.height + 16;
-    _updateContentOffset();
+    _updateContentInsets();
   }
 
-  void _updateContentOffset() => _controller.updateContentOffset(Offset(0, _overlayHeight - _toolbarHeight));
+  void _updateContentInsets() =>
+      _controller.updateContentInsets(EdgeInsets.only(top: _overlayHeight, bottom: _toolbarHeight));
 
   // ---- User actions -----------------------------------------------------------------------------
 

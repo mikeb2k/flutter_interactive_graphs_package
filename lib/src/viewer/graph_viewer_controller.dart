@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:math' as math;
-import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:interactive_graphs/src/layout/graph_layout.dart';
 import 'package:interactive_graphs/src/layout/layout_config.dart';
 import 'package:interactive_graphs/src/model/graph.dart';
@@ -91,7 +91,7 @@ class GraphViewerController extends ChangeNotifier {
   LayoutConfig _layoutConfig;
   Rect _positionBounds;
   Size _canvasSize = Size.zero;
-  Offset _contentOffset = Offset.zero;
+  EdgeInsets _contentInsets = EdgeInsets.zero;
   Map<String, Size> _measuredSizes = const {};
   Map<String, Offset> _manualPositions = const {};
   Graph? _manualLayout;
@@ -131,8 +131,9 @@ class GraphViewerController extends ChangeNotifier {
   /// Size of the viewer, [Size.zero] until it is laid out.
   Size get canvasSize => _canvasSize;
 
-  /// Space reserved for overlay UI; [centerGraph] shifts the graph by half of it.
-  Offset get contentOffset => _contentOffset;
+  /// Room overlay UI takes at the edges of the viewer; [centerGraph] and [centerOn] use what is
+  /// left.
+  EdgeInsets get contentInsets => _contentInsets;
 
   /// Positions placed by hand (dragging or [moveNode]), by node id.
   Map<String, Offset> get manualPositions => _manualPositions;
@@ -189,29 +190,36 @@ class GraphViewerController extends ChangeNotifier {
     moveNode(id, node.position + delta);
   }
 
-  /// Reserves room for overlay UI, which [centerGraph] compensates for.
-  void updateContentOffset(Offset value) {
-    if (value == _contentOffset) return;
-    _contentOffset = value;
+  /// Reserves room for overlay UI at the edges of the viewer (a toolbar, a caption…). The view
+  /// stays where it is until the next [centerGraph] or [centerOn].
+  void updateContentInsets(EdgeInsets value) {
+    if (value == _contentInsets) return;
+    _contentInsets = value;
     _notifyStructure();
   }
 
-  /// Centers the node bounds in the viewport and scales them to fit (within the viewer's zoom
-  /// limits).
+  /// Centers the graph in the room [contentInsets] leave and scales it to fit there (within the
+  /// viewer's zoom limits).
   void centerGraph({bool animated = true}) {
-    final centered = _contentOffset / 2;
     if (_layoutedGraph.nodes.isEmpty || _canvasSize.isEmpty) {
-      updateTransform(scale: _clampScale(1), offset: centered, animated: animated);
+      centerOn(graphCenter, scale: 1, animated: animated);
       return;
     }
     final bounds = GraphBounds.ofNodes(_layoutedGraph.nodes.values);
+    final room = _contentInsets.deflateSize(_canvasSize);
     final padding = _config.contentPadding;
-    final fitX = bounds.width > 0 ? _canvasSize.width * padding / bounds.width : 1.0;
-    final fitY = bounds.height > 0 ? _canvasSize.height * padding / bounds.height : 1.0;
-    final scale = _clampScale(math.min(fitX, fitY));
-    // The viewer centers the node positions; the bounds also cover the node sizes
-    final offset = centered - (bounds.center - graphCenter) * scale;
-    updateTransform(scale: scale, offset: offset, animated: animated);
+    final fitX = bounds.width > 0 ? room.width * padding / bounds.width : 1.0;
+    final fitY = bounds.height > 0 ? room.height * padding / bounds.height : 1.0;
+    centerOn(bounds.center, scale: math.min(fitX, fitY), animated: animated);
+  }
+
+  /// Puts [graphPoint] (graph space) in the middle of the room [contentInsets] leave, at [scale]
+  /// (the current zoom when `null`, clamped to the viewer's zoom limits).
+  void centerOn(Offset graphPoint, {double? scale, bool animated = true}) {
+    final target = _clampScale(scale ?? this.scale);
+    final insets = _contentInsets;
+    final middle = Offset((insets.left - insets.right) / 2, (insets.top - insets.bottom) / 2);
+    updateTransform(scale: target, offset: middle - (graphPoint - graphCenter) * target, animated: animated);
   }
 
   /// Zooms in one `zoomStep` about the viewport center, animated.

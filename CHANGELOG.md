@@ -1,3 +1,15 @@
+## 0.2.0
+
+* **Breaking:** `GraphViewerController.contentOffset` / `updateContentOffset(Offset)` are replaced
+  by `contentInsets` / `updateContentInsets(EdgeInsets)`: the room overlay UI takes at each edge
+  of the viewer. `centerGraph` now fits the graph into the room that is left instead of only
+  shifting it. Migrate `updateContentOffset(Offset(0, top - bottom))` to
+  `updateContentInsets(EdgeInsets.only(top: top, bottom: bottom))`.
+* `GraphViewerController.centerOn(graphPoint, scale:, animated:)` puts a graph point in the middle
+  of that room.
+* Fixed: `centerGraph` centers the node bounds, so a graph whose outer nodes differ in size no
+  longer ends up off center.
+
 ## 0.1.0
 
 First release: a Flutter port of [Kuiver](https://github.com/justdeko/kuiver).

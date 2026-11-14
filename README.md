@@ -217,9 +217,12 @@ change.
 
 ## Camera
 
-`controller.centerGraph()`, `zoomIn()`, `zoomOut()`, `updateTransform(scale:, offset:, animated:)`,
-`moveNode(id, position)`, `clearManualPositions()`, `relayout()`, and `graphToViewport` /
-`viewportToGraph` to convert coordinates. Users zoom with pinch, trackpad pinch and Ctrl (or Cmd)
+`controller.centerGraph()`, `centerOn(graphPoint, scale:)`, `zoomIn()`, `zoomOut()`,
+`updateTransform(scale:, offset:, animated:)`, `moveNode(id, position)`, `clearManualPositions()`,
+`relayout()`, and `graphToViewport` / `viewportToGraph` to convert coordinates. When a toolbar or
+a panel covers part of the viewer, reserve its room with
+`controller.updateContentInsets(EdgeInsets.only(top: 64))`: `centerGraph` and `centerOn` then use
+what is left. Users zoom with pinch, trackpad pinch and Ctrl (or Cmd)
 + scroll, and pan with drag, trackpad and scroll. Springs, zoom limits, fit padding and scroll
 speeds are in `GraphViewerConfig`; `MediaQuery.disableAnimations` turns the animations off.
 

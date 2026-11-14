@@ -78,7 +78,7 @@ class _ShowcaseViewState extends ConsumerState<ShowcaseView> with TickerProvider
     _controller = GraphViewerController(
       graph: StepGraph.build(state.visibleIds, state.layout),
       layoutConfig: state.layout.config,
-    )..updateContentOffset(Offset(0, _topInset(state) - ShowcaseMetrics.bottomInset));
+    )..updateContentInsets(EdgeInsets.only(top: _topInset(state), bottom: ShowcaseMetrics.bottomInset));
     _pan.addListener(_onPanTick);
     ref
       ..listenManual(showcaseProvider.select((state) => (state.visibleIds, state.layout)), _onGraphChanged)
@@ -210,7 +210,7 @@ class _ShowcaseViewState extends ConsumerState<ShowcaseView> with TickerProvider
   void _onCameraChanged(CameraRequest? previous, CameraRequest next) => unawaited(_followCamera(next));
 
   void _onCaptionChanged(bool? previous, bool next) =>
-      _controller.updateContentOffset(Offset(0, _topInset(_state) - ShowcaseMetrics.bottomInset));
+      _controller.updateContentInsets(EdgeInsets.only(top: _topInset(_state), bottom: ShowcaseMetrics.bottomInset));
 
   void _onRunningChanged(bool? previous, bool next) => _syncFlow();
 
