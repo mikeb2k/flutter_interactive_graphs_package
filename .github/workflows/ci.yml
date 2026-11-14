@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Flutter ${{ matrix.flutter }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # The oldest Flutter the package supports, and the current stable
+        flutter: ['3.47.x', '3.x']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ matrix.flutter }}
+          cache: true
+      - name: Get dependencies
+        run: |
+          flutter pub get
+          cd example && flutter pub get
+      # The formatter's output can differ between Dart versions; check it on the current one
+      - name: Check formatting
+        if: matrix.flutter == '3.x'
+        run: dart format -l 120 --set-exit-if-changed lib test example/lib example/test
+      # Also covers example/, with its own analysis options
+      - name: Analyze
+        run: flutter analyze
+      - name: Test the package
+        run: flutter test
+      - name: Test the example
+        run: flutter test
+        working-directory: example
