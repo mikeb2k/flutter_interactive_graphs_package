@@ -15,9 +15,9 @@
   and node selection or hover leaves the edges alone; with an `edgeBuilder` only the edges that
   moved or changed state rebuild; `updateContentInsets` rebuilds nothing.
 * `GraphViewerController.backgroundLayoutThreshold` defaults to 200 (was 400), and only one
-  background layout runs at a time: requests made meanwhile are laid out once, after it. In a
-  `testWidgets` test a background layout only finishes inside `tester.runAsync`; pass a higher
-  threshold to keep such graphs on the UI isolate.
+  background layout runs at a time: a newer request stops its isolate and is laid out instead.
+  In a `testWidgets` test a background layout only finishes inside `tester.runAsync`; pass a
+  higher threshold to keep such graphs on the UI isolate.
 * `GraphViewerConfig.rebuildNodesOnLayout` (default `true`): turn it off when the `nodeBuilder`
   reads neither the node's position nor its size, and a node is built once instead of after every
   layout pass.

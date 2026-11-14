@@ -7,6 +7,8 @@ import 'package:interactive_graphs/src/layout/graph_layout.dart';
 import 'package:interactive_graphs/src/layout/layout_config.dart';
 import 'package:interactive_graphs/src/model/graph.dart';
 import 'package:interactive_graphs/src/model/graph_bounds.dart';
+import 'package:interactive_graphs/src/viewer/background_layout_io.dart'
+    if (dart.library.js_interop) 'package:interactive_graphs/src/viewer/background_layout_web.dart';
 import 'package:interactive_graphs/src/viewer/graph_interaction.dart';
 import 'package:interactive_graphs/src/viewer/graph_viewer_config.dart';
 
@@ -76,8 +78,8 @@ class GraphViewerController extends ChangeNotifier {
        _transform = ValueNotifier(GraphTransform(initialScale, initialOffset));
 
   /// Node count from which layouts run on a background isolate (except custom layouts and on the
-  /// web, which run on the UI isolate). One runs at a time; requests made meanwhile are laid out
-  /// once, after it.
+  /// web, which run on the UI isolate). One runs at a time: a newer request stops it and is laid
+  /// out instead.
   ///
   /// In a `testWidgets` test a background layout only finishes inside `tester.runAsync`; raise the
   /// threshold to keep the graph on the UI isolate there.
@@ -105,6 +107,7 @@ class GraphViewerController extends ChangeNotifier {
   int _animationVersion = 0;
   bool _layoutScheduled = false;
   bool _layoutRunning = false;
+  BackgroundLayout? _background;
   bool _disposed = false;
 
   /// The graph as supplied, before layout.
@@ -346,6 +349,8 @@ class GraphViewerController extends ChangeNotifier {
 
   void _scheduleLayout() {
     _layoutGeneration++;
+    // The running background layout is out of date; the pass that waits for it starts over
+    _background?.cancel();
     if (_layoutScheduled) return;
     _layoutScheduled = true;
     scheduleMicrotask(_runLayout);
@@ -353,7 +358,7 @@ class GraphViewerController extends ChangeNotifier {
 
   Future<void> _runLayout() async {
     _layoutScheduled = false;
-    // One background layout at a time: the running one starts over when it finds itself superseded
+    // One background layout at a time: a newer request stops it, and its pass starts over
     if (_disposed || _layoutRunning) return;
     final generation = _layoutGeneration;
     final sized = _graph.withMeasuredSizes(_measuredSizes);
@@ -364,8 +369,9 @@ class GraphViewerController extends ChangeNotifier {
       final background = !kIsWeb && config is! CustomLayoutConfig && sized.nodes.length >= backgroundLayoutThreshold;
       if (background) {
         _layoutRunning = true;
+        final job = _background = BackgroundLayout();
         try {
-          laid = await compute(_BackgroundLayout.run, (sized, config));
+          laid = await job.run(sized, config) ?? sized;
         } on Object catch (error, stack) {
           // Never leave the graph unlaid: report and lay out on this isolate instead
           FlutterError.reportError(
@@ -379,6 +385,7 @@ class GraphViewerController extends ChangeNotifier {
           laid = GraphLayout.run(sized, config);
         } finally {
           _layoutRunning = false;
+          _background = null;
         }
       } else {
         laid = GraphLayout.run(sized, config);
@@ -427,15 +434,11 @@ class GraphViewerController extends ChangeNotifier {
   @override
   void dispose() {
     _disposed = true;
+    _background?.cancel();
     interaction.dispose();
     _transform.dispose();
     _animation.dispose();
     _structure.dispose();
     super.dispose();
   }
-}
-
-/// Entry point of background layouts; static so it can cross into an isolate.
-abstract final class _BackgroundLayout {
-  static Graph run((Graph, LayoutConfig) args) => GraphLayout.run(args.$1, args.$2);
 }

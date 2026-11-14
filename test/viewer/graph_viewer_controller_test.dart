@@ -266,6 +266,39 @@ void main() {
     expect(laid.nodes['A']!.position.dx, lessThan(laid.nodes['C']!.position.dx));
   });
 
+  test('a newer request stops the background layout it supersedes', () async {
+    final heavy = Graph.build((g) {
+      g.nodes([for (var i = 0; i < 1000; i++) 'n$i']);
+      for (var i = 1; i < 1000; i++) {
+        g.edge('n${i ~/ 2}', 'n$i');
+      }
+    });
+    // Seconds of work, were it left to finish
+    final controller = GraphViewerController(
+      graph: heavy,
+      layoutConfig: const LayoutConfig.forceDirected(iterations: 20000),
+      backgroundLayoutThreshold: 1,
+    )..reportCanvasSize(const Size(800, 600));
+    addTearDown(controller.dispose);
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    expect(controller.isLayoutPending, isTrue);
+    final watch = Stopwatch()..start();
+
+    controller
+      ..layoutConfig = const LayoutConfig.hierarchical()
+      ..updateGraph(chain());
+    for (var i = 0; i < 2000 && controller.isLayoutPending; i++) {
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+    }
+
+    expect(watch.elapsed, lessThan(const Duration(seconds: 2)));
+    expect(controller.layoutedGraph.nodes.keys, ['A', 'B', 'C']);
+    expect(
+      controller.layoutedGraph.nodes['A']!.position.dx,
+      lessThan(controller.layoutedGraph.nodes['C']!.position.dx),
+    );
+  });
+
   group('interaction', () {
     test('single, multiple and canvas taps', () {
       final interaction = GraphInteraction()
