@@ -250,20 +250,28 @@ final class EdgeStyle {
 /// Strokes [EdgePath]s on a canvas.
 abstract final class EdgePainting {
   /// Draws [path] in [style]: the line (dashed if asked, at 80 % opacity) and the arrow head.
-  static void paint(Canvas canvas, EdgePath path, EdgeStyle style) {
-    final line = path.toPath();
+  ///
+  /// A caller that draws the same edge again and again can compute its [line] once and pass it in.
+  static void paint(Canvas canvas, EdgePath path, EdgeStyle style, {Path? line}) {
     final paint = Paint()
       ..color = style.color.withValues(alpha: style.color.a * EdgeGeometry.lineAlpha)
       ..style = PaintingStyle.stroke
       ..strokeWidth = style.strokeWidth
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
-    canvas.drawPath(style.dashed ? dash(line, style.dashLength, style.gapLength) : line, paint);
+    canvas.drawPath(line ?? EdgePainting.line(path, style), paint);
 
     final direction = path.arrowDirection;
     if (style.showArrow && direction != null && path.length > 0) {
       style.arrowPainter(canvas, path.to, direction, style.color, style.arrowSize);
     }
+  }
+
+  /// The line [paint] strokes for [path] in [style]: the path itself, or its dashes.
+  static Path line(EdgePath path, EdgeStyle style) {
+    final whole = path.toPath();
+    if (!style.dashed) return whole;
+    return dash(whole, style.dashLength, style.gapLength);
   }
 
   /// [source] cut into dashes of [dashLength] separated by [gapLength].

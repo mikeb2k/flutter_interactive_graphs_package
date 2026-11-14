@@ -350,13 +350,16 @@ class _CenterAt extends SingleChildLayoutDelegate {
 }
 
 class _EdgePathPainter extends CustomPainter {
-  const _EdgePathPainter(this.path, this.style);
+  _EdgePathPainter(this.path, this.style);
 
   final EdgePath path;
   final EdgeStyle style;
 
+  // The layer repaints whenever any edge changes; an unchanged edge keeps its line and dashes
+  late final Path _line = EdgePainting.line(path, style);
+
   @override
-  void paint(Canvas canvas, Size size) => EdgePainting.paint(canvas, path, style);
+  void paint(Canvas canvas, Size size) => EdgePainting.paint(canvas, path, style, line: _line);
 
   @override
   bool shouldRepaint(_EdgePathPainter oldDelegate) => oldDelegate.path != path || oldDelegate.style != style;

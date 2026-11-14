@@ -75,6 +75,23 @@ void main() {
       expect(changed.toSet(), hasLength(changed.length));
     });
 
+    test('the line of an edge is its path, cut into dashes when the style asks', () {
+      final path = const EdgeStyle().createPath(
+        const GraphEdge('A', 'B'),
+        null,
+        const Offset(0, 0),
+        const Offset(100, 0),
+      );
+      double drawn(Path line) => line.computeMetrics().fold(0, (sum, metric) => sum + metric.length);
+
+      final solid = EdgePainting.line(path, const EdgeStyle());
+      final dashed = EdgePainting.line(path, const EdgeStyle(dashed: true, dashLength: 10, gapLength: 10));
+
+      expect(drawn(solid), closeTo(drawn(path.toPath()), 0.001));
+      expect(drawn(dashed), lessThan(drawn(solid) * 0.6));
+      expect(dashed.computeMetrics().length, greaterThan(1));
+    });
+
     test('cuts a line into dashes and gaps', () {
       final line = Path()
         ..moveTo(0, 0)
