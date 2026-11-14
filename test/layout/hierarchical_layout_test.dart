@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -151,6 +152,65 @@ void main() {
     final result = run(doubled);
     expect(result.nodes, run(single).nodes);
     expect(result.edges.any((e) => e.id == 'again'), isTrue);
+  });
+
+  test('an edge that skips a level opens a gap before the only node there', () {
+    final laid = run(graphOf(['A', 'B', 'C', 'D'], [('A', 'B'), ('B', 'C'), ('C', 'D'), ('A', 'C'), ('A', 'D')]));
+    double across(String id) => laid.nodes[id]!.position.dy - laid.nodes['A']!.position.dy;
+
+    // Two edges pass B, one passes C; each pushes the node one slot aside, half a slot off center
+    expect(across('C'), greaterThan(0));
+    expect(across('B'), closeTo(across('C') * 2, 0.001));
+    expect(across('D'), 0);
+  });
+
+  test('edges that skip a level open their gaps in the middle of it', () {
+    final laid = run(
+      graphOf(
+        ['R1', 'R2', 'R3', 'a', 'b', 'c', 'd', 'T'],
+        [
+          ('R1', 'a'),
+          ('R2', 'b'),
+          ('R3', 'c'),
+          ('R1', 'd'),
+          ('a', 'T'),
+          ('b', 'T'),
+          ('c', 'T'),
+          ('d', 'T'),
+          ('R1', 'T'),
+          ('R2', 'T'),
+          ('R3', 'T'),
+        ],
+      ),
+    );
+    final level = [
+      for (final id in ['a', 'b', 'c', 'd']) laid.nodes[id]!.position.dy,
+    ]..sort();
+    final slot = level[1] - level[0];
+
+    // Two nodes, three gaps (one per skipping edge), two nodes
+    expect(slot, greaterThan(0));
+    expect(level[2] - level[1], closeTo(slot * 4, 0.001));
+    expect(level[3] - level[2], closeTo(slot, 0.001));
+  });
+
+  test('a large graph with many level-skipping edges is laid out quickly', () {
+    final random = Random(7);
+    final graph = Graph.build((g) {
+      g.nodes([for (var i = 0; i < 5000; i++) 'n$i']);
+      for (var k = 0; k < 7500; k++) {
+        final from = random.nextInt(5000);
+        final to = random.nextInt(5000);
+        if (from != to) g.edge('n$from', 'n$to', id: 'e$k');
+      }
+    });
+    final watch = Stopwatch()..start();
+
+    final laid = run(graph);
+
+    // Linear in nodes and edges: tens of milliseconds, where a quadratic pass took seconds
+    expect(watch.elapsed, lessThan(const Duration(seconds: 2)));
+    expect(laid.nodes, hasLength(5000));
   });
 
   test('is deterministic and leaves its input alone', () {

@@ -207,30 +207,32 @@ abstract final class HierarchicalLayout {
     Map<int, List<String>> nodesByLevel,
     Map<String, int> levels,
   ) {
-    final result = <int, List<_LevelEntry>>{
-      for (final MapEntry(key: level, value: ids) in nodesByLevel.entries)
-        level: [for (final id in ids) _NodeEntry(id)],
-    };
-
+    // Edges passing each level, counted as a difference array: +1 where an edge starts to pass
+    // levels, -1 where it lands
+    final maxLevel = nodesByLevel.keys.fold(0, math.max);
+    final passing = List.filled(maxLevel + 2, 0);
     final seenPairs = <(String, String)>{};
     for (final edge in graph.edges) {
       if (!seenPairs.add((edge.fromId, edge.toId))) continue;
       final fromLevel = levels[edge.fromId] ?? 0;
       final toLevel = levels[edge.toId] ?? 0;
       if (toLevel - fromLevel <= 1) continue;
-
-      for (var level = fromLevel + 1; level < toLevel; level++) {
-        final entries = result[level];
-        if (entries == null) continue;
-        if (entries.length == 1) {
-          result[level] = [const _SpacerEntry(), entries.first];
-        } else {
-          final mid = entries.length ~/ 2;
-          result[level] = [...entries.take(mid), const _SpacerEntry(), ...entries.skip(mid)];
-        }
-      }
+      passing[fromLevel + 1]++;
+      passing[toLevel]--;
     }
-    return result;
+    for (var level = 1; level < passing.length; level++) {
+      passing[level] += passing[level - 1];
+    }
+
+    // One gap per passing edge, in the middle of the level (before a lone node)
+    return {
+      for (final MapEntry(key: level, value: ids) in nodesByLevel.entries)
+        level: [
+          for (final id in ids.take(ids.length ~/ 2)) _NodeEntry(id),
+          for (var gap = 0; gap < passing[level]; gap++) const _SpacerEntry(),
+          for (final id in ids.skip(ids.length ~/ 2)) _NodeEntry(id),
+        ],
+    };
   }
 }
 

@@ -9,6 +9,8 @@
   of that room.
 * Fixed: `centerGraph` centers the node bounds, so a graph whose outer nodes differ in size no
   longer ends up off center.
+* Performance: `HierarchicalLayout` is linear in the edges that skip levels. A random graph of
+  5000 nodes and 7500 edges went from about 8 s to well under 100 ms.
 
 ## 0.1.0
 
