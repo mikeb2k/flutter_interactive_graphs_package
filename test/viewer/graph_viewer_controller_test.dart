@@ -64,6 +64,19 @@ void main() {
     expect(fitted.center.dx, closeTo(400, 1));
   });
 
+  test('fitting centers the node bounds, also when the outer nodes differ in size', () async {
+    final uneven = Graph.build(
+      (g) => g
+        ..node('A', size: const Size(40, 40))
+        ..node('B', size: const Size(400, 40))
+        ..edge('A', 'B'),
+    );
+    final controller = await laidOut(graph: uneven);
+    final bounds = GraphBounds.ofNodes(controller.layoutedGraph.nodes.values);
+
+    expect(controller.graphToViewport(bounds.center), offsetMoreOrLessEquals(const Offset(400, 300), epsilon: 1));
+  });
+
   test('an equal graph is a no-op, a new one is laid out', () async {
     final controller = await laidOut();
     var notified = 0;

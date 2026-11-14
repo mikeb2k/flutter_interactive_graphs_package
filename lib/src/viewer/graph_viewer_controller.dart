@@ -196,7 +196,8 @@ class GraphViewerController extends ChangeNotifier {
     _notifyStructure();
   }
 
-  /// Centers the graph in the viewport and scales it to fit (within the viewer's zoom limits).
+  /// Centers the node bounds in the viewport and scales them to fit (within the viewer's zoom
+  /// limits).
   void centerGraph({bool animated = true}) {
     final centered = _contentOffset / 2;
     if (_layoutedGraph.nodes.isEmpty || _canvasSize.isEmpty) {
@@ -207,7 +208,10 @@ class GraphViewerController extends ChangeNotifier {
     final padding = _config.contentPadding;
     final fitX = bounds.width > 0 ? _canvasSize.width * padding / bounds.width : 1.0;
     final fitY = bounds.height > 0 ? _canvasSize.height * padding / bounds.height : 1.0;
-    updateTransform(scale: _clampScale(math.min(fitX, fitY)), offset: centered, animated: animated);
+    final scale = _clampScale(math.min(fitX, fitY));
+    // The viewer centers the node positions; the bounds also cover the node sizes
+    final offset = centered - (bounds.center - graphCenter) * scale;
+    updateTransform(scale: scale, offset: offset, animated: animated);
   }
 
   /// Zooms in one `zoomStep` about the viewport center, animated.
