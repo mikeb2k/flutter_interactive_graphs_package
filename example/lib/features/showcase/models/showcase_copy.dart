@@ -126,7 +126,7 @@ abstract final class ShowcaseCopy {
   /// Tour caption: closing.
   static const TourText outro = TourText(
     'interactive_graphs',
-    'github.com/BADIT-s-r-o/flutter_interactive_graphs_package',
+    'github.com/mikeb2k/flutter_interactive_graphs_package',
     large: true,
   );
 }
