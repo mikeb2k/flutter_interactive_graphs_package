@@ -9,6 +9,15 @@ topics:
   - visualization
   - layout
   - widget
+screenshots:
+  - description: "The example app: the graph grows node by node, an order runs through it and the camera follows."
+    path: doc/images/demo-interaction.gif
+  - description: An order on its way through the graph, on a phone.
+    path: doc/images/demo-phone.png
+  - description: A step expanded to show its details, on a phone.
+    path: doc/images/demo-phone-details.png
+  - description: The same graph laid out left to right in a desktop window.
+    path: doc/images/demo-desktop.png
 
 environment:
   sdk: ^3.13.0

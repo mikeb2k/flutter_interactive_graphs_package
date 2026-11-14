@@ -5,6 +5,14 @@ pan and zoom, animated layout changes, styled and labelled edges, anchors, selec
 node drag. A Dart port of [Kuiver](https://github.com/justdeko/kuiver), the Kotlin Multiplatform
 graph library by Denis Koljada.
 
+<p align="center">
+  <img src="doc/images/demo-interaction.gif" alt="The example app: the graph grows node by node, an order runs through it and the camera follows" width="720">
+</p>
+
+| Phone | Expanded step | Desktop and web |
+|:-----:|:-------------:|:---------------:|
+| <img src="doc/images/demo-phone.png" alt="An order on its way through the graph, on a phone" height="360"> | <img src="doc/images/demo-phone-details.png" alt="A step expanded to show its details, on a phone" height="360"> | <img src="doc/images/demo-desktop.png" alt="The same graph laid out left to right in a desktop window" width="400"> |
+
 - 2 built-in layouts (hierarchical and force-directed) plus custom layouts
 - Acyclic and cyclic graphs, self loops and parallel edges
 - Nodes are any widgets, measured automatically
@@ -308,6 +316,13 @@ Agent instructions, rules and subagents live in `AGENTS.md` and `.claude/` (adap
 flutter pub get
 flutter analyze && flutter test
 dart format -l 120 lib test
+```
+
+The images in `doc/images/` are drawn from the example app, with no device needed (the GIF needs
+`ffmpeg`). After a visible change, draw them again:
+
+```bash
+cd example && flutter test tool/doc_images_test.dart
 ```
 
 ## License

@@ -35,7 +35,7 @@ jobs:
       # The formatter's output can differ between Dart versions; check it on the current one
       - name: Check formatting
         if: matrix.flutter == '3.x'
-        run: dart format -l 120 --set-exit-if-changed lib test example/lib example/test
+        run: dart format -l 120 --set-exit-if-changed lib test example/lib example/test example/tool
       # Also covers example/, with its own analysis options
       - name: Analyze
         run: flutter analyze
