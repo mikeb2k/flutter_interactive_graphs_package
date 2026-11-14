@@ -9,8 +9,8 @@ graph library by Denis Koljada.
   <img src="doc/images/demo-interaction.gif" alt="The example app: the graph grows node by node, an order runs through it and the camera follows" width="720">
 </p>
 
-| Phone | Expanded step | Desktop and web |
-|:-----:|:-------------:|:---------------:|
+|                                                   Phone                                                    |                                                  Expanded step                                                   |                                                   Desktop and web                                                   |
+| :--------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------: |
 | <img src="doc/images/demo-phone.png" alt="An order on its way through the graph, on a phone" height="360"> | <img src="doc/images/demo-phone-details.png" alt="A step expanded to show its details, on a phone" height="360"> | <img src="doc/images/demo-desktop.png" alt="The same graph laid out left to right in a desktop window" width="400"> |
 
 - 2 built-in layouts (hierarchical and force-directed) plus custom layouts
@@ -227,8 +227,9 @@ label and the rest of its semantics come from your node widget.
 a panel covers part of the viewer, reserve its room with
 `controller.updateContentInsets(EdgeInsets.only(top: 64))`: `centerGraph` and `centerOn` then use
 what is left. Users zoom with pinch, trackpad pinch and Ctrl (or Cmd)
-+ scroll, and pan with drag, trackpad and scroll. Springs, zoom limits, fit padding and scroll
-speeds are in `GraphViewerConfig`; `MediaQuery.disableAnimations` turns the animations off.
+
+- scroll, and pan with drag, trackpad and scroll. Springs, zoom limits, fit padding and scroll
+  speeds are in `GraphViewerConfig`; `MediaQuery.disableAnimations` turns the animations off.
 
 ## Theming
 
@@ -236,12 +237,12 @@ Graphs follow the app's Material theme out of the box: edges, back edges, labels
 outlines take their colors from the ambient `ColorScheme`, and labels use `textTheme.labelMedium`.
 Light and dark mode, `ColorScheme.fromSeed` and theme animations all carry over with no setup.
 
-| Graph element              | Theme role                         |
-| -------------------------- | ---------------------------------- |
-| Edges                      | `outline`                          |
-| Back edges, self loops     | `outline` faded / `error`          |
-| Label text                 | `onSurface`, `textTheme.labelMedium` |
-| Label background, border   | `surfaceContainerHigh`, `outlineVariant` |
+| Graph element            | Theme role                               |
+| ------------------------ | ---------------------------------------- |
+| Edges                    | `outline`                                |
+| Back edges, self loops   | `outline` faded / `error`                |
+| Label text               | `onSurface`, `textTheme.labelMedium`     |
+| Label background, border | `surfaceContainerHigh`, `outlineVariant` |
 
 To restyle every graph of the app, add a `GraphThemeData` to the theme's extensions:
 
@@ -290,27 +291,26 @@ cd example && flutter run -d chrome
 
 ## Coming from Kuiver
 
-| Kuiver (Compose)                                   | interactive_graphs (Flutter)                                 |
-| -------------------------------------------------- | ------------------------------------------------------------ |
-| `buildKuiver { nodes(..); edges(..) }`             | `Graph.build((g) => g..nodes([..])..edges([..]))`             |
-| `Kuiver`, `KuiverNode`, `KuiverEdge`               | `Graph`, `GraphNode`, `GraphEdge`                             |
-| `NodeDimensions(w.dp, h.dp)`, `DpOffset`           | `Size(w, h)`, `Offset` (logical pixels)                       |
-| `rememberKuiverViewerState(kuiver, layoutConfig)`  | `GraphViewerController(graph:, layoutConfig:)` in a `State`   |
-| `state.updateKuiver(..)`                           | `controller.updateGraph(..)`                                  |
-| `KuiverViewer(state, nodeContent, edgeContent)`    | `GraphViewer(controller:, nodeBuilder:, edgeBuilder:)`        |
-| `KuiverViewer(.., edgeStyle = ..)`                 | `GraphViewer(.., edgeStyle: ..)`                              |
-| `KuiverNodeScope` / `KuiverEdgeScope` receivers    | `NodeDetails` / `EdgeDetails` arguments                       |
-| `StyledEdgeContent`, `EdgeContentWithLabel`, …     | `StyledEdge`, `EdgeLine` with an `EdgeShape`                  |
-| `KuiverAnchor(anchorId, nodeId)`                   | `GraphAnchor(id:)` (the node is implicit)                     |
-| `LocalKuiverColors provides KuiverColors(..)`      | automatic from `ThemeData`; override with a `GraphThemeData` theme extension or `GraphTheme` |
-| `ArrowDrawer`                                      | `ArrowPainter`                                                |
-| `AnimationSpec` in `KuiverViewerConfig`            | `SpringDescription` in `GraphViewerConfig`                    |
-| `rememberSaveableKuiverViewerState`                | not ported: keep the `Graph` in your own state / restoration |
+| Kuiver (Compose)                                  | interactive_graphs (Flutter)                                                                 |
+| ------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `buildKuiver { nodes(..); edges(..) }`            | `Graph.build((g) => g..nodes([..])..edges([..]))`                                            |
+| `Kuiver`, `KuiverNode`, `KuiverEdge`              | `Graph`, `GraphNode`, `GraphEdge`                                                            |
+| `NodeDimensions(w.dp, h.dp)`, `DpOffset`          | `Size(w, h)`, `Offset` (logical pixels)                                                      |
+| `rememberKuiverViewerState(kuiver, layoutConfig)` | `GraphViewerController(graph:, layoutConfig:)` in a `State`                                  |
+| `state.updateKuiver(..)`                          | `controller.updateGraph(..)`                                                                 |
+| `KuiverViewer(state, nodeContent, edgeContent)`   | `GraphViewer(controller:, nodeBuilder:, edgeBuilder:)`                                       |
+| `KuiverViewer(.., edgeStyle = ..)`                | `GraphViewer(.., edgeStyle: ..)`                                                             |
+| `KuiverNodeScope` / `KuiverEdgeScope` receivers   | `NodeDetails` / `EdgeDetails` arguments                                                      |
+| `StyledEdgeContent`, `EdgeContentWithLabel`, …    | `StyledEdge`, `EdgeLine` with an `EdgeShape`                                                 |
+| `KuiverAnchor(anchorId, nodeId)`                  | `GraphAnchor(id:)` (the node is implicit)                                                    |
+| `LocalKuiverColors provides KuiverColors(..)`     | automatic from `ThemeData`; override with a `GraphThemeData` theme extension or `GraphTheme` |
+| `ArrowDrawer`                                     | `ArrowPainter`                                                                               |
+| `AnimationSpec` in `KuiverViewerConfig`           | `SpringDescription` in `GraphViewerConfig`                                                   |
+| `rememberSaveableKuiverViewerState`               | not ported: keep the `Graph` in your own state / restoration                                 |
 
 ## Development
 
-Agent instructions, rules and subagents live in `AGENTS.md` and `.claude/` (adapted from
-`flutter_webshare_monorepo`).
+Agent instructions, rules and subagents live in `AGENTS.md` and `.claude/`
 
 ```bash
 flutter pub get
