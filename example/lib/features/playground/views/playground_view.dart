@@ -178,7 +178,7 @@ class _PlaygroundViewState extends ConsumerState<PlaygroundView> {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   spacing: 12,
                   children: [
-                    ?_zoomColumn(compact),
+                    if (compact) PlaygroundZoomColumn(onZoomIn: _controller.zoomIn, onZoomOut: _controller.zoomOut),
                     Center(
                       child: SizeReporter(
                         onSizeChanged: _onToolbarSize,
@@ -208,11 +208,6 @@ class _PlaygroundViewState extends ConsumerState<PlaygroundView> {
   LayoutDirection _directionForSize(Size size) {
     if (size.width < size.height) return LayoutDirection.vertical;
     return LayoutDirection.horizontal;
-  }
-
-  Widget? _zoomColumn(bool compact) {
-    if (!compact) return null;
-    return PlaygroundZoomColumn(onZoomIn: _controller.zoomIn, onZoomOut: _controller.zoomOut);
   }
 
   String _sourceLabel(PlaygroundState state) {
