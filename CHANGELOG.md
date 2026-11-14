@@ -1,3 +1,7 @@
+## 0.2.1
+
+* README: the demo GIF and screenshots show on pub.dev too.
+
 ## 0.2.0
 
 * **Breaking:** `GraphViewerController.contentOffset` / `updateContentOffset(Offset)` are replaced
