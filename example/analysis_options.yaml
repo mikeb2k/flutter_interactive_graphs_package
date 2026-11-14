@@ -6,8 +6,20 @@ linter:
     prefer_const_constructors_in_immutables: true
     prefer_const_declarations: true
     prefer_const_literals_to_create_immutables: true
+    # Repo rules the analyzer can hold: absolute imports, documented public API, no dropped futures
+    always_use_package_imports: true
+    directives_ordering: true
+    public_member_api_docs: true
+    unawaited_futures: true
+
+plugins:
+  riverpod_lint: ^3.2.0
 
 analyzer:
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
   errors:
     invalid_annotation_target: ignore
     prefer_const_constructors: warning

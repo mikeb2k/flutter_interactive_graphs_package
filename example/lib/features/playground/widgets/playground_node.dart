@@ -1,6 +1,6 @@
 import 'package:interactive_graphs/interactive_graphs.dart';
-import 'package:interactive_graphs_example/features/playground/models/port_side.dart';
 import 'package:interactive_graphs_example/features/playground/models/playground_defaults.dart';
+import 'package:interactive_graphs_example/features/playground/models/port_side.dart';
 import 'package:interactive_graphs_example/models/node_data.dart';
 import 'package:interactive_graphs_example/theme/app_theme.dart';
 import 'package:material_ui/material_ui.dart';
