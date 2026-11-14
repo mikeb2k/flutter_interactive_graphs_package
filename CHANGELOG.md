@@ -14,6 +14,10 @@
 * Performance: edges and nodes paint into layers of their own, so pan and zoom repaint neither
   and node selection or hover leaves the edges alone; with an `edgeBuilder` only the edges that
   moved or changed state rebuild; `updateContentInsets` rebuilds nothing.
+* `GraphViewerController.backgroundLayoutThreshold` defaults to 200 (was 400), and only one
+  background layout runs at a time: requests made meanwhile are laid out once, after it. In a
+  `testWidgets` test a background layout only finishes inside `tester.runAsync`; pass a higher
+  threshold to keep such graphs on the UI isolate.
 
 ## 0.1.0
 

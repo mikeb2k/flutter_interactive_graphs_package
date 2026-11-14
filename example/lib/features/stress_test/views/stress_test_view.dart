@@ -10,7 +10,7 @@ import 'package:interactive_graphs_example/widgets/size_reporter.dart';
 import 'package:material_ui/material_ui.dart';
 
 /// Stress test: large random graphs with a node count picker, layout switch, regeneration, debug
-/// bounds and batched edge painting. Graphs of 400 nodes or more are laid out on a background
+/// bounds and batched edge painting. Graphs of 200 nodes or more are laid out on a background
 /// isolate (except on the web).
 class StressTestView extends ConsumerStatefulWidget {
   /// Creates the screen.

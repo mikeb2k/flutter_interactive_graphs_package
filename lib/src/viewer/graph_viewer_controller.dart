@@ -53,7 +53,7 @@ final class TransformAnimationRequest {
 /// [interaction] state.
 ///
 /// The graph is laid out again whenever the graph, the [layoutConfig], the measured node sizes or
-/// the canvas change, or on [relayout]. Large graphs (at least [backgroundLayoutThreshold] nodes)
+/// the canvas change, or on [relayout]. Larger graphs (at least [backgroundLayoutThreshold] nodes)
 /// are laid out on a background isolate on platforms that have one.
 ///
 /// Coordinates: node positions are in graph space. The viewer puts the center of the node
@@ -69,14 +69,18 @@ class GraphViewerController extends ChangeNotifier {
     this._layoutConfig = const HierarchicalLayoutConfig(),
     double initialScale = 1,
     Offset initialOffset = Offset.zero,
-    this.backgroundLayoutThreshold = 400,
+    this.backgroundLayoutThreshold = 200,
   }) : _graph = graph,
        _layoutedGraph = graph,
        _positionBounds = GraphBounds.ofPositions(graph.nodes.values),
        _transform = ValueNotifier(GraphTransform(initialScale, initialOffset));
 
   /// Node count from which layouts run on a background isolate (except custom layouts and on the
-  /// web, which run on the UI isolate).
+  /// web, which run on the UI isolate). One runs at a time; requests made meanwhile are laid out
+  /// once, after it.
+  ///
+  /// In a `testWidgets` test a background layout only finishes inside `tester.runAsync`; raise the
+  /// threshold to keep the graph on the UI isolate there.
   final int backgroundLayoutThreshold;
 
   /// Selection, hover and drag state.
@@ -349,7 +353,8 @@ class GraphViewerController extends ChangeNotifier {
 
   Future<void> _runLayout() async {
     _layoutScheduled = false;
-    if (_disposed) return;
+    // One background layout at a time: the running one starts over when it finds itself superseded
+    if (_disposed || _layoutRunning) return;
     final generation = _layoutGeneration;
     final sized = _graph.withMeasuredSizes(_measuredSizes);
     final canvas = _canvasSize;
@@ -379,8 +384,12 @@ class GraphViewerController extends ChangeNotifier {
         laid = GraphLayout.run(sized, config);
       }
     }
-    // A newer request superseded this one
-    if (_disposed || generation != _layoutGeneration) return;
+    if (_disposed) return;
+    // A newer request superseded this one; it had to wait while this pass ran in the background
+    if (generation != _layoutGeneration) {
+      if (!_layoutScheduled) _scheduleLayout();
+      return;
+    }
 
     _applyLayout(laid);
     _applyInitialFit();

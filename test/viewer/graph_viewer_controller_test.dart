@@ -245,6 +245,27 @@ void main() {
     expect(laid.nodes['A']!.position.dy, lessThan(laid.nodes['B']!.position.dy));
   });
 
+  test('requests made while a background layout runs end in a layout of the latest graph', () async {
+    final controller = GraphViewerController(graph: chain(), backgroundLayoutThreshold: 1)
+      ..reportCanvasSize(const Size(800, 600));
+    await settle();
+    expect(controller.isLayoutPending, isTrue);
+
+    for (final id in ['D', 'E', 'F']) {
+      controller.updateGraph(controller.graph.rebuild((g) => g.node(id, size: const Size(40, 40))));
+      await settle();
+    }
+    for (var i = 0; i < 500 && controller.isLayoutPending; i++) {
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+    }
+
+    expect(controller.isLayoutPending, isFalse);
+    expect(controller.layoutedGraph.nodes.keys, containsAll(['A', 'B', 'C', 'D', 'E', 'F']));
+    expect(controller.hasFittedInitially, isTrue);
+    final laid = controller.layoutedGraph;
+    expect(laid.nodes['A']!.position.dx, lessThan(laid.nodes['C']!.position.dx));
+  });
+
   group('interaction', () {
     test('single, multiple and canvas taps', () {
       final interaction = GraphInteraction()
