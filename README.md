@@ -213,7 +213,8 @@ GraphViewer(
 
 State lives in `controller.interaction` (`selectedNodeIds`, `selectedEdgeIds`, `hoveredNodeId`,
 `select`, `toggleSelection`, `clearSelection`, …). A node widget only rebuilds when its own flags
-change.
+change. With a `selectionMode`, a node also tells screen readers whether it is selected; its
+label and the rest of its semantics come from your node widget.
 
 ## Camera
 

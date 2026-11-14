@@ -309,6 +309,8 @@ class _NodeHostState extends State<NodeHost> {
     if (config.hoverEnabled) {
       result = MouseRegion(onEnter: _onEnter, onExit: _onExit, child: result);
     }
+    // Joins the node's own semantics (its label, the tap action), it doesn't replace them
+    if (config.selectionMode != SelectionMode.none) result = Semantics(selected: _isSelected, child: result);
     return result;
   }
 

@@ -88,6 +88,30 @@ void main() {
     expect(canvasTaps, 1);
   });
 
+  testWidgets('a selectable node tells assistive technology whether it is selected', (tester) async {
+    final semantics = tester.ensureSemantics();
+    final controller = await pumpViewer(tester, config: const GraphViewerConfig(selectionMode: SelectionMode.single));
+    expect(
+      tester.getSemantics(find.text('A')),
+      isSemantics(label: 'A', hasSelectedState: true, isSelected: false),
+    );
+
+    controller.interaction.select('A');
+    await tester.pump();
+
+    expect(tester.getSemantics(find.text('A*')), isSemantics(label: 'A*', isSelected: true, hasTapAction: true));
+    expect(tester.getSemantics(find.text('B')), isSemantics(isSelected: false));
+    semantics.dispose();
+  });
+
+  testWidgets('without selection a node has no selected state', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await pumpViewer(tester);
+
+    expect(tester.getSemantics(find.text('A')), isNot(isSemantics(hasSelectedState: true)));
+    semantics.dispose();
+  });
+
   testWidgets('dragging the canvas pans, dragging a node moves it when enabled', (tester) async {
     final panned = await pumpViewer(tester);
     final offset = panned.offset;
