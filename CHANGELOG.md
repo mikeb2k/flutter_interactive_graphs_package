@@ -11,6 +11,9 @@
   longer ends up off center.
 * Performance: `HierarchicalLayout` is linear in the edges that skip levels. A random graph of
   5000 nodes and 7500 edges went from about 8 s to well under 100 ms.
+* Performance: edges and nodes paint into layers of their own, so pan and zoom repaint neither
+  and node selection or hover leaves the edges alone; with an `edgeBuilder` only the edges that
+  moved or changed state rebuild; `updateContentInsets` rebuilds nothing.
 
 ## 0.1.0
 

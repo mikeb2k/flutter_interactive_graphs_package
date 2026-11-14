@@ -191,11 +191,11 @@ class GraphViewerController extends ChangeNotifier {
   }
 
   /// Reserves room for overlay UI at the edges of the viewer (a toolbar, a caption…). The view
-  /// stays where it is until the next [centerGraph] or [centerOn].
+  /// stays where it is until the next [centerGraph] or [centerOn], so nothing is rebuilt.
   void updateContentInsets(EdgeInsets value) {
     if (value == _contentInsets) return;
     _contentInsets = value;
-    _notifyStructure();
+    notifyListeners();
   }
 
   /// Centers the graph in the room [contentInsets] leave and scales it to fit there (within the

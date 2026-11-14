@@ -81,6 +81,12 @@ class _GraphViewerState extends State<GraphViewer> with TickerProviderStateMixin
   Graph? _shownGraph;
   Map<String, Offset> _targets = const {};
   Map<String, EdgeBend> _bends = const {};
+  // What each edge widget was last built from; reused while none of it changes
+  final Map<String, _BuiltEdge> _builtEdgeCache = {};
+  // Fires when the selected or hovered edge changes, not on node selection or hover
+  final ValueNotifier<int> _edgeState = ValueNotifier(0);
+  Set<String> _seenSelectedEdges = const {};
+  String? _seenHoveredEdge;
   bool _initialSnapDone = false;
   bool _reduceMotion = false;
   Size _viewport = Size.zero;
@@ -139,6 +145,7 @@ class _GraphViewerState extends State<GraphViewer> with TickerProviderStateMixin
     _unsubscribe(_controller);
     _transformTicker.dispose();
     _transition.dispose();
+    _edgeState.dispose();
     _anchors.dispose();
     super.dispose();
   }
@@ -193,7 +200,9 @@ class _GraphViewerState extends State<GraphViewer> with TickerProviderStateMixin
       fit: StackFit.expand,
       clipBehavior: Clip.none,
       children: [
-        IgnorePointer(child: _edgeLayer()),
+        // Edges and nodes paint into layers of their own: pan and zoom repaint neither, and a
+        // change in one leaves the other alone
+        IgnorePointer(child: RepaintBoundary(child: _edgeLayer())),
         if (widget.config.showDebugBounds)
           IgnorePointer(
             child: CustomPaint(
@@ -203,27 +212,29 @@ class _GraphViewerState extends State<GraphViewer> with TickerProviderStateMixin
               ),
             ),
           ),
-        NodeLayer(
-          centerOf: _nodeCenter,
-          positions: _positions,
-          onMeasured: _controller.reportMeasuredSizes,
-          children: [
-            for (final node in graph.nodes.values)
-              NodeSlot(
-                key: ValueKey(node.id),
-                nodeId: node.id,
-                fixedSize: _controller.graph.nodes[node.id]?.size,
-                child: NodeHost(
-                  node: node,
+        RepaintBoundary(
+          child: NodeLayer(
+            centerOf: _nodeCenter,
+            positions: _positions,
+            onMeasured: _controller.reportMeasuredSizes,
+            children: [
+              for (final node in graph.nodes.values)
+                NodeSlot(
+                  key: ValueKey(node.id),
+                  nodeId: node.id,
                   fixedSize: _controller.graph.nodes[node.id]?.size,
-                  controller: _controller,
-                  anchors: _anchors,
-                  config: widget.config,
-                  callbacks: widget.callbacks,
-                  builder: widget.nodeBuilder,
+                  child: NodeHost(
+                    node: node,
+                    fixedSize: _controller.graph.nodes[node.id]?.size,
+                    controller: _controller,
+                    anchors: _anchors,
+                    config: widget.config,
+                    callbacks: widget.callbacks,
+                    builder: widget.nodeBuilder,
+                  ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
       ],
     );
@@ -249,16 +260,31 @@ class _GraphViewerState extends State<GraphViewer> with TickerProviderStateMixin
     for (final edge in _controller.layoutedGraph.edges) {
       final details = _edgeDetails(edge);
       if (details == null) continue;
-      children.add(
-        EdgeHitScope(
-          key: ValueKey(edge.id),
-          edgeId: edge.id,
-          registry: registry,
-          child: Builder(builder: (context) => builder(context, details)),
-        ),
-      );
+      children.add(_builtEdge(details, builder, registry));
     }
     return Stack(fit: StackFit.expand, clipBehavior: Clip.none, children: children);
+  }
+
+  /// The widget of an edge. An unchanged edge keeps its widget, so only the edges that moved or
+  /// changed state rebuild; the builder runs in a [Builder] of its own, so the inherited widgets
+  /// it reads still rebuild it.
+  Widget _builtEdge(EdgeDetails details, GraphEdgeBuilder builder, EdgeHitRegistry? registry) {
+    final id = details.edge.id;
+    final cached = _builtEdgeCache[id];
+    if (cached != null &&
+        cached.details == details &&
+        identical(cached.builder, builder) &&
+        identical(cached.registry, registry)) {
+      return cached.widget;
+    }
+    final widget = EdgeHitScope(
+      key: ValueKey(id),
+      edgeId: id,
+      registry: registry,
+      child: Builder(builder: (context) => builder(context, details)),
+    );
+    _builtEdgeCache[id] = (details: details, builder: builder, registry: registry, widget: widget);
+    return widget;
   }
 
   EdgeHitRegistry? _hitRegistry() {
@@ -335,13 +361,28 @@ class _GraphViewerState extends State<GraphViewer> with TickerProviderStateMixin
   void _subscribe(GraphViewerController controller) {
     controller.structureListenable.addListener(_onStructureChanged);
     controller.animationListenable.addListener(_onAnimationRequest);
+    controller.interaction.addListener(_onInteraction);
+    _seenSelectedEdges = controller.interaction.selectedEdgeIds;
+    _seenHoveredEdge = controller.interaction.hoveredEdgeId;
     _positions = Listenable.merge([_transition, controller.interaction.dragOffset]);
-    _edgeInputs = Listenable.merge([_transition, controller.interaction, controller.interaction.dragOffset, _anchors]);
+    _edgeInputs = Listenable.merge([_transition, _edgeState, controller.interaction.dragOffset, _anchors]);
   }
 
   void _unsubscribe(GraphViewerController controller) {
     controller.structureListenable.removeListener(_onStructureChanged);
     controller.animationListenable.removeListener(_onAnimationRequest);
+    controller.interaction.removeListener(_onInteraction);
+  }
+
+  /// Passes on the interaction changes that edges show: their selection and hover.
+  void _onInteraction() {
+    final interaction = _controller.interaction;
+    final selected = interaction.selectedEdgeIds;
+    final hovered = interaction.hoveredEdgeId;
+    if (identical(selected, _seenSelectedEdges) && hovered == _seenHoveredEdge) return;
+    _seenSelectedEdges = selected;
+    _seenHoveredEdge = hovered;
+    _edgeState.value++;
   }
 
   void _onStructureChanged() {
@@ -353,7 +394,9 @@ class _GraphViewerState extends State<GraphViewer> with TickerProviderStateMixin
       _bends = graph.hasParallelEdges ? ParallelEdges.bends(graph.edges) : const {};
       final nodeIds = graph.nodes.keys.toSet();
       _anchors.retain(nodeIds);
-      _hits.retain({for (final edge in graph.edges) edge.id});
+      final edgeIds = {for (final edge in graph.edges) edge.id};
+      _hits.retain(edgeIds);
+      _builtEdgeCache.removeWhere((id, _) => !edgeIds.contains(id));
       _transition.animateTo(_targets, spring: _layoutSpring(graph));
       if (_controller.hasFittedInitially) _initialSnapDone = true;
     }
@@ -517,6 +560,9 @@ class _GraphViewerState extends State<GraphViewer> with TickerProviderStateMixin
     if (widget.config.edgeHoverEnabled) _controller.interaction.hoveredEdgeId = null;
   }
 }
+
+/// An edge widget and what it was built from.
+typedef _BuiltEdge = ({EdgeDetails details, GraphEdgeBuilder builder, EdgeHitRegistry? registry, Widget widget});
 
 /// Paints every edge from one canvas.
 class _BatchedEdgePainter extends CustomPainter {

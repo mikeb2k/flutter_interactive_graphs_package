@@ -498,7 +498,8 @@ class RenderNodeLayer extends RenderBox
 
   @override
   void performLayout() {
-    final measured = <String, Size>{};
+    var measuredCount = 0;
+    var sizesChanged = false;
     var child = firstChild;
     while (child != null) {
       final data = child.parentData! as NodeLayerParentData;
@@ -506,18 +507,32 @@ class RenderNodeLayer extends RenderBox
       child.layout(fixed == null ? const BoxConstraints() : BoxConstraints.tight(fixed), parentUsesSize: true);
       final id = data.nodeId;
       if (id != null) {
-        // A plain copy: debug sizes reference their render object and can't cross isolates
-        if (fixed == null) measured[id] = Size.copy(child.size);
+        if (fixed == null) {
+          measuredCount++;
+          if (_reported[id] != child.size) sizesChanged = true;
+        }
         data.offset = _centerOf(id) - child.size.center(Offset.zero);
       }
       child = data.nextSibling;
     }
-    if (!mapEquals(measured, _reported)) {
-      _reported = measured;
-      final callback = onMeasured;
-      // Reported after layout: the controller may not rebuild anything mid-frame
-      scheduleMicrotask(() => callback(measured));
+    // This runs on every frame of a layout animation; collect the sizes only when one changed
+    if (sizesChanged || measuredCount != _reported.length) _reportMeasured();
+  }
+
+  void _reportMeasured() {
+    final measured = <String, Size>{};
+    var child = firstChild;
+    while (child != null) {
+      final data = child.parentData! as NodeLayerParentData;
+      final id = data.nodeId;
+      // A plain copy: debug sizes reference their render object and can't cross isolates
+      if (id != null && data.fixedSize == null) measured[id] = Size.copy(child.size);
+      child = data.nextSibling;
     }
+    _reported = measured;
+    final callback = onMeasured;
+    // Reported after layout: the controller may not rebuild anything mid-frame
+    scheduleMicrotask(() => callback(measured));
   }
 
   @override

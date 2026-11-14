@@ -115,6 +115,19 @@ void main() {
     expect(controller.graphToViewport(point), offsetMoreOrLessEquals(const Offset(400, 300)));
   });
 
+  test('reserving content insets notifies listeners but leaves the structure alone', () async {
+    final controller = await laidOut();
+    var structure = 0;
+    var notified = 0;
+    controller.structureListenable.addListener(() => structure++);
+    controller.addListener(() => notified++);
+
+    controller.updateContentInsets(const EdgeInsets.only(top: 100));
+
+    expect(structure, 0);
+    expect(notified, 1);
+  });
+
   test('an equal graph is a no-op, a new one is laid out', () async {
     final controller = await laidOut();
     var notified = 0;

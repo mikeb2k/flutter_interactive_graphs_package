@@ -340,6 +340,88 @@ void main() {
     expect(builds['B'], before['B']);
   });
 
+  testWidgets('panning and zooming repaint nothing', (tester) async {
+    var arrows = 0;
+    void countingArrow(Canvas canvas, Offset tip, Offset direction, Color color, double size) => arrows++;
+    final controller = GraphViewerController(graph: pair());
+    addTearDown(controller.dispose);
+    await tester.pumpWidget(
+      host(
+        GraphViewer(
+          controller: controller,
+          nodeBuilder: (context, details) => box(details),
+          edgeStyle: (details) => EdgeStyle(arrowPainter: countingArrow),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(arrows, greaterThan(0));
+    arrows = 0;
+
+    controller.updateTransform(scale: 1.5, offset: const Offset(40, -20));
+    await tester.pump();
+
+    expect(arrows, 0);
+    expect(controller.scale, 1.5);
+  });
+
+  testWidgets('hovering a node repaints no edge, selecting an edge repaints them', (tester) async {
+    var arrows = 0;
+    void countingArrow(Canvas canvas, Offset tip, Offset direction, Color color, double size) => arrows++;
+    final controller = GraphViewerController(graph: pair());
+    addTearDown(controller.dispose);
+    await tester.pumpWidget(
+      host(
+        GraphViewer(
+          controller: controller,
+          config: const GraphViewerConfig(hoverEnabled: true, edgeSelectionMode: SelectionMode.single),
+          nodeBuilder: (context, details) => box(details),
+          edgeStyle: (details) => EdgeStyle(arrowPainter: countingArrow),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    arrows = 0;
+
+    controller.interaction.hoveredNodeId = 'A';
+    await tester.pump();
+    expect(arrows, 0);
+
+    controller.interaction.selectEdge('A->B');
+    await tester.pump();
+    expect(arrows, 1);
+  });
+
+  testWidgets('hovering a node rebuilds no edge widget, dragging one rebuilds only its edges', (tester) async {
+    final builds = <String, int>{};
+    final controller = await pumpViewer(
+      tester,
+      graph: Graph.build(
+        (g) => g
+          ..nodes(['A', 'B', 'C', 'D'])
+          ..edge('A', 'B', id: 'ab')
+          ..edge('C', 'D', id: 'cd'),
+      ),
+      config: const GraphViewerConfig(hoverEnabled: true, nodeDragEnabled: true),
+      edgeBuilder: (context, details) {
+        builds.update(details.edge.id, (n) => n + 1, ifAbsent: () => 1);
+        return StyledEdge(details: details);
+      },
+    );
+    final settled = Map.of(builds);
+
+    controller.interaction.hoveredNodeId = 'A';
+    await tester.pump();
+    expect(builds, settled);
+
+    controller.interaction
+      ..startDrag('A')
+      ..dragBy(const Offset(0, 20));
+    await tester.pump();
+    expect(builds['ab'], greaterThan(settled['ab']!));
+    expect(builds['cd'], settled['cd']);
+  });
+
   test('config copyWith reaches every field', () {
     const config = GraphViewerConfig();
     expect(config.animateLayout, isTrue);
