@@ -21,13 +21,8 @@ Platforms: Android, iOS, web, macOS, Linux, Windows.
 
 ## Installation
 
-The package is not published to pub.dev. Depend on it from git:
-
-```yaml
-dependencies:
-  interactive_graphs:
-    git:
-      url: https://github.com/BADIT-s-r-o/flutter_interactive_graphs_package
+```bash
+flutter pub add interactive_graphs
 ```
 
 Requires Flutter `>=3.47.0` (Dart `^3.13`).
