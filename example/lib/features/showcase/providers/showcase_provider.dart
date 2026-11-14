@@ -10,7 +10,8 @@ import 'package:interactive_graphs_example/features/showcase/models/tour_step.da
 final showcaseProvider = NotifierProvider.autoDispose<ShowcaseNotifier, ShowcaseState>(ShowcaseNotifier.new);
 
 /// Changes the showcase: steps, layout, edge style, run status, tour chapter and camera requests.
-/// The view plays the timed sequences (tour, order run, step removal) and moves the camera.
+/// `ShowcaseDirector` plays the timed sequences (tour, order run, step removal) and `ShowcaseCamera`
+/// moves the camera.
 class ShowcaseNotifier extends Notifier<ShowcaseState> {
   @override
   ShowcaseState build() => ShowcaseState.initial();
