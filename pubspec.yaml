@@ -1,6 +1,7 @@
 name: interactive_graphs
 description: "Interactive directed graph viewer for Flutter: hierarchical and force-directed layouts, pan and zoom, styled and labelled edges, anchors, selection, hover and node drag."
-version: 0.2.1
+version: 0.2.2
+homepage: https://mikeb2k.github.io/flutter_interactive_graphs_package/
 repository: https://github.com/mikeb2k/flutter_interactive_graphs_package
 issue_tracker: https://github.com/mikeb2k/flutter_interactive_graphs_package/issues
 topics:

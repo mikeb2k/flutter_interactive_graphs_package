@@ -1,3 +1,7 @@
+## 0.2.2
+
+* A live web demo of the example app, linked as the package homepage: https://mikeb2k.github.io/flutter_interactive_graphs_package/
+
 ## 0.2.1
 
 * README: the demo GIF and screenshots show on pub.dev too.

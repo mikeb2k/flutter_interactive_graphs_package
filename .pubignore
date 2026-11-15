@@ -6,6 +6,7 @@
 .serena/
 .github/
 AGENTS.md
+docs/superpowers/
 pubspec.lock
 
 # ---- From .gitignore ----

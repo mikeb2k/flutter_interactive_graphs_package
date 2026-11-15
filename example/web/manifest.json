@@ -1,11 +1,11 @@
 {
-    "name": "interactive_graphs_example",
-    "short_name": "interactive_graphs_example",
+    "name": "interactive_graphs demo",
+    "short_name": "Graphs demo",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Try interactive_graphs, a Flutter package for interactive directed graphs, in your browser.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
